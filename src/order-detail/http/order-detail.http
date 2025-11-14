@@ -1,0 +1,31 @@
+### Crear detalle de pedido
+POST {{baseUrl}}/order-details
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "orderId": 1,
+    "productId": 3,
+    "quantity": 2
+}
+
+### Obtener todos los detalles de pedidos
+GET {{baseUrl}}/order-details
+Authorization: Bearer {{token}}
+
+### Obtener un detalle por ID
+GET {{baseUrl}}/order-details/1
+Authorization: Bearer {{token}}
+
+### Actualizar cantidad del detalle
+PATCH {{baseUrl}}/order-details/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "quantity": 5
+}
+
+### Eliminar detalle
+DELETE {{baseUrl}}/order-details/1
+Authorization: Bearer {{token}}

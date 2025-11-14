@@ -1,0 +1,43 @@
+### Crear un pago
+POST {{baseUrl}}/payments
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "orderId": 1,
+    "userId": 2,
+    "amount": 250.00,
+    "method": "credit_card",
+    "transactionId": "TX-123456"
+}
+
+### Obtener todos los pagos (solo admin)
+GET {{baseUrl}}/payments
+Authorization: Bearer {{token}}
+
+### Obtener pago por ID
+GET {{baseUrl}}/payments/1
+Authorization: Bearer {{token}}
+
+### Actualizar un pago
+PATCH {{baseUrl}}/payments/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "method": "paypal",
+    "status": "paid"
+}
+
+### Cambiar estado del pago
+PATCH {{baseUrl}}/payments/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "refunded"
+}
+
+### Eliminar pago
+DELETE {{baseUrl}}/payments/1
+Authorization: Bearer {{token}}

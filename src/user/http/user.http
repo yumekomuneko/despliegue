@@ -1,0 +1,34 @@
+### Crear usuario
+POST {{baseUrl}}/users
+Content-Type: application/json
+
+{
+    "nombre": "Carlos",
+    "apellido": "Pérez",
+    "email": "carlos@example.com",
+    "telefono": "3200000000",
+    "password": "123456",
+    "roleId": 2
+}
+
+### Listar todos los usuarios (solo admin)
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### Obtener un usuario por ID
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{token}}
+
+### Actualizar un usuario
+PATCH {{baseUrl}}/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "telefono": "3109999999",
+    "password": "nuevaClaveSegura"
+}
+
+### Eliminar un usuario (solo admin)
+DELETE {{baseUrl}}/users/1
+Authorization: Bearer {{token}}

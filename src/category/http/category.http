@@ -1,0 +1,40 @@
+### Crear categoría
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nombre": "Electrónicos",
+    "descripcion": "Dispositivos y accesorios tecnológicos"
+}
+
+### Crear otra categoría
+POST {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nombre": "Oficina",
+    "descripcion": "Artículos de papelería y suministros de oficina"
+}
+
+### Listar categorías
+GET {{baseUrl}}/categories
+Authorization: Bearer {{token}}
+
+### Obtener categoría por ID
+GET {{baseUrl}}/categories/1
+Authorization: Bearer {{token}}
+
+### Actualizar categoría
+PATCH {{baseUrl}}/categories/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "descripcion": "Equipos electrónicos y de cómputo"
+}
+
+### Eliminar categoría
+DELETE {{baseUrl}}/categories/1
+Authorization: Bearer {{token}}

@@ -1,0 +1,34 @@
+### Crear un carrito para un usuario
+POST {{baseUrl}}/carts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "userId": 2,
+    "productIds": [1, 3]
+}
+
+### Obtener todos los carritos (solo admin)
+GET {{baseUrl}}/carts
+Authorization: Bearer {{token}}
+
+### Obtener un carrito por ID
+GET {{baseUrl}}/carts/1
+Authorization: Bearer {{token}}
+
+### Actualizar productos del carrito
+PATCH {{baseUrl}}/carts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "productIds": [1, 2, 4]
+}
+
+### Confirmar compra (checkout)
+PATCH {{baseUrl}}/carts/1/checkout
+Authorization: Bearer {{token}}
+
+### Eliminar carrito
+DELETE {{baseUrl}}/carts/1
+Authorization: Bearer {{token}}

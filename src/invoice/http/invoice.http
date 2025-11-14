@@ -1,0 +1,37 @@
+### Crear factura
+POST {{baseUrl}}/invoices
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "userId": 1,
+    "orderId": 2,
+    "paymentId": 3,
+    "totalAmount": 250.00,
+    "invoiceNumber": "INV-2025-001"
+}
+
+### Obtener todas las facturas
+GET {{baseUrl}}/invoices
+Authorization: Bearer {{token}}
+
+### Obtener factura por ID
+GET {{baseUrl}}/invoices/1
+Authorization: Bearer {{token}}
+
+### Actualizar factura
+PATCH {{baseUrl}}/invoices/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "totalAmount": 260.00
+}
+
+### Cancelar factura
+PATCH {{baseUrl}}/invoices/1/cancel
+Authorization: Bearer {{token}}
+
+### Eliminar factura
+DELETE {{baseUrl}}/invoices/1
+Authorization: Bearer {{token}}

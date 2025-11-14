@@ -1,0 +1,40 @@
+### Crear un rol
+POST {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nombre": "admin",
+    "descripcion": "Acceso completo al sistema"
+}
+
+### Crear otro rol
+POST {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nombre": "cliente",
+    "descripcion": "Usuario registrado con permisos básicos"
+}
+
+### Listar roles
+GET {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+
+### Obtener un rol por ID
+GET {{baseUrl}}/roles/1
+Authorization: Bearer {{token}}
+
+### Actualizar un rol
+PATCH {{baseUrl}}/roles/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "descripcion": "Puede ver y modificar sus pedidos"
+}
+
+### Eliminar un rol
+DELETE {{baseUrl}}/roles/3
+Authorization: Bearer {{token}}

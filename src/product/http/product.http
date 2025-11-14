@@ -1,0 +1,34 @@
+### Crear producto
+POST {{baseUrl}}/products
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nombre": "Mouse inalámbrico",
+    "descripcion": "Mouse ergonómico con conexión Bluetooth",
+    "precio": 120000,
+    "imagenUrl": "https://example.com/mouse.jpg",
+    "categories": [1, 2]
+}
+
+### Listar todos los productos
+GET {{baseUrl}}/products
+Authorization: Bearer {{token}}
+
+### Obtener producto por ID
+GET {{baseUrl}}/products/1
+Authorization: Bearer {{token}}
+
+### Actualizar producto
+PATCH {{baseUrl}}/products/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "precio": 99000,
+    "disponible": false
+}
+
+### Eliminar producto
+DELETE {{baseUrl}}/products/1
+Authorization: Bearer {{token}}

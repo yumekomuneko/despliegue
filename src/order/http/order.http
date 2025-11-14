@@ -1,0 +1,39 @@
+### Crear un pedido
+POST {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "userId": 2,
+    "cartId": 1
+}
+
+### Obtener todos los pedidos (solo admin)
+GET {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+
+### Obtener un pedido específico
+GET {{baseUrl}}/orders/1
+Authorization: Bearer {{token}}
+
+### Actualizar pedido (cambiar cart o user)
+PATCH {{baseUrl}}/orders/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "paid"
+}
+
+### Cambiar estado del pedido
+PATCH {{baseUrl}}/orders/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "shipped"
+}
+
+### Eliminar pedido
+DELETE {{baseUrl}}/orders/1
+Authorization: Bearer {{token}}
