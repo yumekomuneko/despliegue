@@ -27,7 +27,7 @@ import { Public } from '../auth/decorators/public.decorator';
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    /** 🧍 Perfil del usuario autenticado */
+    /** Obtener datos del usuario autenticado */
     @Get('profile')
     async getProfile(@Request() req: any) {
         const user = await this.userService.findOne(req.user.userId);
@@ -35,21 +35,21 @@ export class UserController {
         return user;
     }
 
-    /** 👑 Listar todos los usuarios (solo ADMIN) */
+    /** Obtener todos los usuarios (solo ADMIN) */
     @Get()
     @Roles(UserRole.ADMIN)
     async findAll() {
         return this.userService.findAll();
     }
 
-    /** 🧠 Obtener usuario por ID (solo ADMIN) */
+    /** Obtener usuario por ID (solo ADMIN) */
     @Get(':id')
     @Roles(UserRole.ADMIN)
     async findOne(@Param('id') id: number) {
         return this.userService.findOne(id);
     }
 
-    /** 👤 Crear usuario (solo ADMIN) */
+    /**  Crear usuario (solo ADMIN) */
     @Post()
     @Public()
     async create(@Body() dto: CreateUserDto) {
@@ -58,7 +58,7 @@ export class UserController {
 
 
 
-    /** ✏️ Actualizar datos del usuario autenticado */
+    /** Actualizar datos del usuario autenticado */
     @Patch('update')
     async updateProfile(@Request() req: any, @Body() dto: UpdateUserDto) {
         return this.userService.update(req.user.userId, dto);

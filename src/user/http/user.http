@@ -8,16 +8,17 @@ Content-Type: application/json
 {
     "nombre": "Adriana",
     "apellido": "Caicedo",
-    "email": "adri@example.com",
+    "email": "angiecabal3@gmail.com",
     "telefono": "32000000",
-    "password": "12345678"
+    "password": "12345678",
+    "roleId": 1
 }
 
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-    "email": "angiecabal35@gmail.com",
+    "email": "angi@gmail.com",
     "password": "12345678"
 }
 

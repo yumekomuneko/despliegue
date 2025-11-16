@@ -5,14 +5,14 @@ import { User, UserRole } from './entities/user.entity';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import * as argon2 from 'argon2';
 import { CreateUserDto } from './dtos/create-user.dto';
-import { RoleService } from '../role/role.service'; // ✅ Importar RoleService
+import { RoleService } from '../role/role.service'; 
 
 @Injectable()
 export class UserService {
     constructor(
         @InjectRepository(User)
         private readonly usersRepo: Repository<User>,
-        private readonly roleService: RoleService, // ✅ Inyectar RoleService
+        private readonly roleService: RoleService, 
     ) { } // <-- Cierre del constructor
 
     // ===========================
@@ -26,7 +26,7 @@ export class UserService {
     // FIND ONE
     // ===========================
     async findOne(id: number): Promise<User> {
-        // ✅ Cargar la relación 'role'
+        // Cargar la relación 'role'
         const user = await this.usersRepo.findOne({ where: { id }, relations: ['role'] });
         if (!user) throw new NotFoundException('Usuario no encontrado');
         return user;
@@ -39,8 +39,7 @@ export class UserService {
         // Asegura que se cargue la relación 'role' para la lógica de comparación
         const user = await this.findOne(id); 
 
-        // Previene que un usuario no admin cambie roles
-        // ✅ CORRECCIÓN: Comparar user.role.nombre (string)
+        // Si es un cliente, no se puede actualizar el rol
         if (currentUser && currentUser.role.nombre !== UserRole.ADMIN) {
             // No podemos usar delete sobre dto.role si no es opcional, 
             // pero lo eliminamos para evitar errores de tipo si se pasa al assign.
@@ -78,8 +77,7 @@ export class UserService {
             throw new InternalServerErrorException(`Role ${roleName} not found`);
         }
         
-        // 2. ✅ CORRECCIÓN TS2769: Omitir la propiedad 'role' (string) del DTO
-        //    y usar la entidad 'role' correcta.
+        // 2. usar entidad rol
         const { role, ...restOfDto } = dto;
         
         const user = this.usersRepo.create({
@@ -100,7 +98,7 @@ export class UserService {
     async delete(id: number) {
         const user = await this.findOne(id);
         
-        // ✅ CORRECCIÓN TS2367: Comparar user.role.nombre (string)
+        //  Comparar user.role.nombre (string)
         if (user.role.nombre === UserRole.ADMIN) {
             throw new ForbiddenException('No se puede eliminar un administrador');
         }
@@ -109,4 +107,4 @@ export class UserService {
 
         return { message: 'Usuario eliminado correctamente' };
     }
-} // <-- Cierre de la clase UserService
+} 
