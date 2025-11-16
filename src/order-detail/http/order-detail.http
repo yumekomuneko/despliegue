@@ -20,7 +20,7 @@ Authorization: Bearer {{token}}
 
 
 ### 3. Obtener un Detalle por ID (Funciona con token de CLIENTE o ADMIN)
-GET {{baseUrl}}/order-details/2
+GET {{baseUrl}}/order-details/28
 Authorization: Bearer {{token}}
 
 

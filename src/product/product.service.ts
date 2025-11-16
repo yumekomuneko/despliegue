@@ -20,7 +20,7 @@ export class ProductService {
         const products = await this.productRepo.find({ relations: ['categories'] });
         return products.map((p) => ({
         ...p,
-        price: Number(p.price), // ✅ convierte el decimal a número
+        price: Number(p.price), // convierte el decimal a número
         }));
     }
 

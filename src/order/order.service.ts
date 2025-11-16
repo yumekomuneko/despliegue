@@ -5,19 +5,22 @@ import {
     ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Order } from './entities/order.entity';
+import { Repository, DataSource } from 'typeorm';
+import { Order, OrderStatus } from './entities/order.entity';
 import { User } from '../user/entities/user.entity';
 import { Cart } from '../cart/entities/cart.entity';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { UpdateOrderDto } from './dtos/update-order.dto';
 import { OrderDetail } from '../order-detail/entities/order-detail.entity';
 import { Product } from '../product/entities/product.entity';
-import { OrderStatus } from './entities/order.entity';
+
+
 
 @Injectable()
 export class OrderService {
     constructor(
+        private readonly dataSource: DataSource,
+
         @InjectRepository(Order)
         private readonly orderRepo: Repository<Order>,
 
@@ -83,90 +86,142 @@ export class OrderService {
     }
 
     // ============================
-    // CREATE ORDER
+    // CREATE ORDER (CORREGIDO - orderId persistido correctamente)
     // ============================
-    async create(dto: CreateOrderDto, currentUserId?: number): Promise<Order> {
+    async create(userId: number, dto: CreateOrderDto): Promise<Order> {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        const user = await this.userRepo.findOne({
-            where: { id: dto.userId },
-        });
+        try {
+            // Validar usuario
+            const user = await queryRunner.manager.findOne(User, {
+                where: { id: userId },
+            });
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
 
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        const cart = await this.cartRepo.findOne({
-            where: { id: dto.cartId },
-            relations: ['products', 'user'],
-        });
-
-        if (!cart) {
-            throw new NotFoundException('Cart not found');
-        }
-
-        if (currentUserId && cart.user.id !== currentUserId) {
-            throw new ForbiddenException(
-                'You can only create orders from your own cart'
-            );
-        }
-
-        if (!cart.checkedOut) {
-            throw new BadRequestException('Cart must be checked out first');
-        }
-
-        if (!cart.products || cart.products.length === 0) {
-            throw new BadRequestException(
-                'Cannot create an order from an empty cart'
-            );
-        }
-
-        for (const product of cart.products) {
-            const currentProduct = await this.productRepo.findOne({
-                where: { id: product.id },
-                select: ['id', 'name', 'available', 'cantidad'],
+            //  Validar y cargar carrito
+            const cart = await queryRunner.manager.findOne(Cart, {
+                where: { id: dto.cartId },
+                relations: ['items', 'items.product', 'user'],
             });
 
-            if (
-                !currentProduct ||
-                !currentProduct.available ||
-                currentProduct.cantidad <= 0
-            ) {
-                throw new BadRequestException(
-                    `Product ${product.name} is no longer available`
+            if (!cart) {
+                throw new NotFoundException('Cart not found');
+            }
+
+            //  Validaciones
+            if (cart.user.id !== userId) {
+                throw new ForbiddenException(
+                    'You can only create orders from your own cart'
                 );
             }
-        }
 
-        // --- Calcular total ---
-        const total = cart.products.reduce(
-            (acc, p) => acc + Number(p.price),
-            0,
-        );
+            if (!cart.checkedOut) {
+                throw new BadRequestException('Cart must be checked out first');
+            }
 
-        // --- Crear orden ---
-        const order = this.orderRepo.create({
-            user,
-            total,
-            createdAt: new Date(),
-            status: OrderStatus.PENDING,
-        });
+            if (!cart.items || cart.items.length === 0) {
+                throw new BadRequestException(
+                    'Cannot create an order from an empty cart'
+                );
+            }
 
-        const savedOrder = await this.orderRepo.save(order);
-
-        // --- Crear detalles ---
-        for (const product of cart.products) {
-            const detail = this.detailRepo.create({
-                order: savedOrder,
-                product,
-                quantity: 1,
-                unitPrice: product.price,
-                subtotal: product.price,
+            // Crear la ORDEN (sin details por ahora)
+            const order = queryRunner.manager.create(Order, {
+                user: { id: user.id },
+                cart: { id: cart.id },
+                status: OrderStatus.PENDING,
+                total: 0,
             });
 
-            await this.detailRepo.save(detail);
-        }
+            // Guardar orden en BD
+            const savedOrder = await queryRunner.manager.save(Order, order);
 
-        return this.findOne(savedOrder.id);
+            let total = 0;
+
+            //  Procesar items y crear detalles
+            for (const cartItem of cart.items) {
+                const requestedQuantity = cartItem.quantity;
+
+                // Bloquear producto
+                const product = await queryRunner.manager.findOne(Product, {
+                    where: { id: cartItem.product.id },
+                    lock: { mode: 'pessimistic_write' },
+                });
+
+                if (!product) {
+                    throw new NotFoundException(
+                        `Product ID ${cartItem.product.id} not found`
+                    );
+                }
+
+                // Validar disponibilidad
+                if (!product.available) {
+                    throw new BadRequestException(
+                        `Product "${product.name}" is not available`
+                    );
+                }
+
+                // Validar stock
+                if (product.cantidad < requestedQuantity) {
+                    throw new BadRequestException(
+                        `Product "${product.name}" has insufficient stock. ` +
+                        `Available: ${product.cantidad}, Requested: ${requestedQuantity}`
+                    );
+                }
+
+                // Calcular subtotal
+                const subtotal = Number(product.price) * requestedQuantity;
+                total += subtotal;
+
+                // Descontar stock
+                product.cantidad -= requestedQuantity;
+                await queryRunner.manager.save(Product, product);
+
+                // Crar detalle con ID de orden
+                const detail = queryRunner.manager.create(OrderDetail, {
+                    orderId: savedOrder.id, // ✅ CLAVE: Asignar el ID directamente
+                    product: { id: product.id },
+                    quantity: requestedQuantity,
+                    unitPrice: product.price,
+                    subtotal: subtotal,
+                });
+
+                await queryRunner.manager.save(OrderDetail, detail);
+            }
+
+            // 6. Actualizar el total de la orden
+            savedOrder.total = total;
+            await queryRunner.manager.save(Order, savedOrder);
+
+            // 7. Commit
+            await queryRunner.commitTransaction();
+
+            // 8. Retornar orden completa
+            return this.findOne(savedOrder.id);
+        } catch (error) {
+            // Rollback
+            await queryRunner.rollbackTransaction();
+
+            // Re-lanzar errores de negocio
+            if (
+                error instanceof BadRequestException ||
+                error instanceof NotFoundException ||
+                error instanceof ForbiddenException
+            ) {
+                throw error;
+            }
+
+            // Log y error genérico
+            console.error('Error creating order:', error);
+            throw new BadRequestException('Failed to create order');
+        } finally {
+            // Liberar conexión
+            await queryRunner.release();
+        }
     }
 
     // ============================
@@ -190,6 +245,7 @@ export class OrderService {
 
         const statusKey = status as unknown as string;
 
+        // Si es cliente, solo puede cancelar
         if (currentUserId) {
             if (statusKey !== 'CANCELLED') {
                 throw new ForbiddenException(
@@ -197,7 +253,6 @@ export class OrderService {
                 );
             }
 
-            // Solo se puede cancelar si está PENDING
             if (order.status !== OrderStatus.PENDING) {
                 throw new BadRequestException(
                     'You can only cancel orders that are in PENDING status'
@@ -205,7 +260,7 @@ export class OrderService {
             }
         }
 
-        // Validar que el status es válido
+        // Validar status válido
         const finalDbValue = OrderStatus[statusKey as keyof typeof OrderStatus];
 
         if (!finalDbValue) {
@@ -215,8 +270,7 @@ export class OrderService {
             );
         }
 
-        // Asignar el nuevo status
-        (order.status as any) = finalDbValue;
+        order.status = finalDbValue;
 
         return this.orderRepo.save(order);
     }

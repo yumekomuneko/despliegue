@@ -1,35 +1,68 @@
 @baseUrl = http://localhost:3000
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwiaWF0IjoxNzYzMjQ2NTc2LCJleHAiOjE3NjMzMzI5NzZ9.WoU751ytbmqjzkp_BcPdiDnjuxnutUWMJhoYmo1A9wM
-POST {{baseUrl}}/carts
+
+### 1.1. Obtener o Crear Carrito (CLIENTE)
+GET {{baseUrl}}/carts/my
+Authorization: Bearer {{token}}
+
+### 1.2. Añadir Producto + Cantidad (CLIENTE)
+POST {{baseUrl}}/carts/item
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "userId": 11,
-    "productIds": [2,10]
+    "productId": 10,
+    "quantity": 1
 }
 
-### Obtener todos los carritos (solo admin)
+### 1.3. 🔄 Actualizar Cantidad del Producto 1 (De 2 a 8)
+POST {{baseUrl}}/carts/item
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "productId": 3,
+    "quantity": 2
+}
+
+### 1.4. Eliminar Producto 1 con IdProducto del Carrito (CLIENTE)
+DELETE {{baseUrl}}/carts/item/4
+Authorization: Bearer {{token}}
+
+### 1.5. Finalizar (Checkout) el Carrito (debe fallar si está vacío)
+
+PATCH {{baseUrl}}/carts/checkout
+Authorization: Bearer {{token}}
+
+---
+
+### 1.6. Finalizar (Checkout) el Carrito (éxito)
+POST {{baseUrl}}/carts/item
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "productId": 2,
+    "quantity": 1
+}
+
+PATCH {{baseUrl}}/carts/checkout
+Authorization: Bearer {{token}}
+
+// Las rutas para ADMINS
+
+### Cliente intenta ver todos los carritos
 GET {{baseUrl}}/carts
 Authorization: Bearer {{token}}
 
-### Obtener un carrito por ID
+
+### Administrador ve todos los carritos
+// ESPERA: 200 OK
+GET {{baseUrl}}/carts
+Authorization: Bearer {{adminToken}}
+
+
+### Administrador ve un carrito específico por ID
+// ESPERA: 200 OK (Si existe el carrito con ID 1)
 GET {{baseUrl}}/carts/1
-Authorization: Bearer {{token}}
-
-### Actualizar productos del carrito
-PATCH {{baseUrl}}/carts/7
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-    "productIds": [2]
-}
-
-### Confirmar compra (checkout)
-PATCH {{baseUrl}}/carts/4/checkout
-Authorization: Bearer {{token}}
-
-### Eliminar carrito
-DELETE {{baseUrl}}/carts/1
-Authorization: Bearer {{token}}
+Authorization: Bearer {{adminToken}}

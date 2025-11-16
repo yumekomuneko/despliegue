@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderDetail } from './entities/order-detail.entity';
@@ -26,47 +26,51 @@ export class OrderDetailService {
 
     async findOne(id: number, currentUserId?: number): Promise<OrderDetail> { 
     
-    // Si se proporciona currentUserId, forzamos el filtro por propiedad de la ORDEN
-    const whereCondition: any = { id };
+        const whereCondition: any = { id };
 
-    if (currentUserId) {
-        whereCondition.order = { user: { id: currentUserId } }; 
+        if (currentUserId) {
+            // Aseguramos que la orden pertenezca al usuario
+            whereCondition.order = { user: { id: currentUserId } }; 
+        }
+        
+        // crear la relación 'order' con lazy: true
+        const detail = await this.detailRepo.findOne({
+            where: whereCondition, 
+            relations: ['order', 'product'], 
+        });
+
+        if (!detail) {
+            throw new NotFoundException(`Order detail ${id} not found`); 
+        }
+
+        return detail;
     }
-    
-    const detail = await this.detailRepo.findOne({
-        where: whereCondition, 
-        relations: ['order', 'product'],
-    });
-
-    if (!detail) {
-        throw new NotFoundException(`Order detail ${id} not found`); 
-    }
-
-    return detail;
-}
 
     async create(dto: CreateOrderDetailDto): Promise<OrderDetail> {
-        const order = await this.orderRepo.findOne({ where: { id: dto.orderId } });
-        if (!order) throw new NotFoundException('Order not found');
+    const order = await this.orderRepo.findOne({ where: { id: dto.orderId } });
+    if (!order) throw new NotFoundException('Order not found');
 
-        const product = await this.productRepo.findOne({
-            where: { id: dto.productId },
-        });
-        if (!product) throw new NotFoundException('Product not found');
+    const product = await this.productRepo.findOne({
+        where: { id: dto.productId },
+    });
+    if (!product) throw new NotFoundException('Product not found');
 
-        // Aseguramos la conversión antes del cálculo
-        const subtotal = Number(product.price) * dto.quantity; 
+    const subtotal = Number(product.price) * dto.quantity; 
 
-        const detail = this.detailRepo.create({
-            order,
-            product,
-            quantity: dto.quantity,
-            unitPrice: product.price,
-            subtotal,
-        });
+    const detail = this.detailRepo.create({
+        // Pasamos el objeto Order como referencia ID
+        order: { id: order.id } as any, 
+        
+        // usamos el producto como referencia ID para consistencia
+        product: { id: product.id } as any, 
+        
+        quantity: dto.quantity,
+        unitPrice: product.price,
+        subtotal,
+    });
 
-        return this.detailRepo.save(detail);
-    }
+    return this.detailRepo.save(detail);
+}
 
     async update(id: number, dto: UpdateOrderDetailDto): Promise<OrderDetail> {
         const detail = await this.findOne(id);
@@ -74,26 +78,31 @@ export class OrderDetailService {
 
         if (dto.quantity && dto.quantity !== detail.quantity) {
             
-            // 1. Recalcular subtotal del detalle
+            // Recalcular subtotal del detalle
             detail.quantity = dto.quantity;
+            // Se asume que unitPrice es de tipo number o string que se puede convertir
             detail.subtotal = Number(detail.unitPrice) * dto.quantity; 
 
             updatedDetail = await this.detailRepo.save(detail);
 
-            // 2. CRÍTICO: Recalcular y actualizar el total de la ORDEN
+            
+            // Acceder a la promesa 'order' con await si la relación es lazy.
+            const orderReference = await detail.order;
+            
             // Cargamos la orden con todos sus detalles para recalcular el total
             const orderWithDetails = await this.orderRepo.findOne({
-                where: { id: updatedDetail.order.id },
-                relations: ['details'], // Necesitamos los detalles para sumar
+                where: { id: orderReference.id },
+                relations: ['details'], 
             });
 
             if (orderWithDetails) {
-                 const newTotal = orderWithDetails.details.reduce(
-                    (acc, d) => acc + d.subtotal,
-                    0,
-                );
-                orderWithDetails.total = newTotal;
-                await this.orderRepo.save(orderWithDetails);
+                    const newTotal = orderWithDetails.details.reduce(
+                    // Convertir subtotal a Number antes de sumar para evitar concatenación.
+                        (acc, d) => acc + Number(d.subtotal),
+                        0,
+                    );
+                    orderWithDetails.total = newTotal;
+                    await this.orderRepo.save(orderWithDetails);
             }
         }
         
@@ -103,8 +112,9 @@ export class OrderDetailService {
     async remove(id: number): Promise<{ message: string }> {
         const detail = await this.findOne(id);
         
-        // Antes de eliminar, necesitamos la orden para recalcular el total
-        const orderId = detail.order.id;
+        // Acceder a la promesa 'order' con await si la relación es lazy.
+        const orderReference = await detail.order;
+        const orderId = orderReference.id;
         
         await this.detailRepo.remove(detail);
         
@@ -116,7 +126,8 @@ export class OrderDetailService {
 
         if (orderWithRemainingDetails) {
             const newTotal = orderWithRemainingDetails.details.reduce(
-                (acc, d) => acc + d.subtotal,
+                // Convertir subtotal a Number antes de sumar para evitar concatenación.
+                (acc, d) => acc + Number(d.subtotal),
                 0,
             );
             orderWithRemainingDetails.total = newTotal;

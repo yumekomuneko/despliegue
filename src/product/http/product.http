@@ -9,7 +9,7 @@ Content-Type: application/json
     "name": "Telefono celular",
     "description": "Terreneitor 3000 ultimo en tecnology, más rapido que camaron que se duerme",
     "price": 100000,
-    "cantidad": 50,
+    "cantidad": 10,
     "imageUrl": "https://example.com/mouse.jpg",
     "categories": [1, 2]
 }

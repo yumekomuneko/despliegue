@@ -2,29 +2,35 @@
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwiaWF0IjoxNzYzMjQ3ODY4LCJleHAiOjE3NjMzMzQyNjh9.wmPAjDOn00aDMIvcNY7KBgR3Ew6f8JIqK00jZHAd2Mc
 
 
-### 1. Crear una orden (El userId se toma automáticamente del token) (solo admin)
+### Crear una Orden (USO CLIENTE)
+// El stock se descuenta aquí. El cartId debe ser del usuario y estar checkedOut: true.
 POST {{baseUrl}}/orders
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "cartId": 4
+    "cartId": 11
 }
 
-### 2. Ver mis órdenes (solo cliente)
+
+### Ver Mis Órdenes
 GET {{baseUrl}}/orders/my-orders
 Authorization: Bearer {{token}}
 
-### 3. Ver una orden específica (solo cliente)
+
+### Ver Mi Orden Específica by ID
+GET {{baseUrl}}/orders/2
+Authorization: Bearer {{token}}
+
+
+###Intentar ver la Orden de Otro Usuario (IDOR Check)
 GET {{baseUrl}}/orders/1
 Authorization: Bearer {{token}}
 
-### 5. Ver todas las órdenes (solo admin)
-GET {{baseUrl}}/orders
-Authorization: Bearer {{token}}
 
-### 6. Cancelar orden (solo cliente)
-PATCH {{baseUrl}}/orders/7/status
+### Cancelar Mi Orden (Acción de Cliente)
+// Solo se puede cancelar si está PENDING.
+PATCH {{baseUrl}}/orders/2/status
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -32,8 +38,9 @@ Content-Type: application/json
     "status": "CANCELLED"
 }
 
-### 7. Intentar cambiar estado de orden (solo cliente)
-PATCH {{baseUrl}}/orders/1/status
+
+### Intentar Poner un Estado que NO sea CANCELLED (CLIENTE)
+PATCH {{baseUrl}}/orders/3/status
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
@@ -41,7 +48,42 @@ Content-Type: application/json
     "status": "CONFIRMED"
 }
 
-### 8. INTENTAR ACTUALIZAR ORDEN (solo admin - debe dar 403)
+### Intentar crear orden con carrito de otro usuario
+// El servicio busca el carrito por id Y el userId del token.
+POST {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "cartId": 1
+}
+
+### Intentar crear orden con carrito NO finalizado (checkedOut: false)
+POST {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "cartId": 7
+}
+
+
+### Cliente intenta ver todas las órdenes
+// ESPERA: 403 Forbidden
+GET {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+
+---
+
+### Administrador ve todas las órdenes
+// ESPERA: 200 OK
+GET {{baseUrl}}/orders
+Authorization: Bearer {{adminToken}}
+
+---
+
+### Cliente intenta actualizar la orden
+// ESPERA: 403 Forbidden
 PATCH {{baseUrl}}/orders/1
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -50,29 +92,13 @@ Content-Type: application/json
     "total": 50000
 }
 
-### 9. INTENTAR ELIMINAR ORDEN (solo admin - debe dar 403)
-DELETE {{baseUrl}}/orders/1
-Authorization: Bearer {{token}}
 
-### ========================================
-### CASOS DE ERROR
-### ========================================
-
-### 10. Intentar crear orden con carrito con id diferente al del usuario (debe dar 403)
-POST {{baseUrl}}/orders
-Authorization: Bearer {{token}}
+### Administrador cambia estado a CONFIRMED
+// ESPERA: 200 OK
+PATCH {{baseUrl}}/orders/1/status
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-    "userId": 13,
-    "cartId": 1
-}
-
-### 11. Intentar crear orden con carta sin checkout (debe dar 400)
-POST {{baseUrl}}/orders
-Authorization: Bearer {{token}}
-Content-Type: application/json
-
-{
-    "cartId": 2
+    "status": "CONFIRMED"
 }

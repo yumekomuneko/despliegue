@@ -63,15 +63,19 @@ export class OrderController {
     // ============================
     @Post()
     create(@Body() dto: CreateOrderDto, @Req() req) {
-        const currentUserId = Number(req.user.userId);
-        const currentUserRole = req.user.role;
+    const currentUserId = Number(req.user.userId);
+    const currentUserRole = req.user.role;
 
-        if (currentUserRole !== 'ADMIN') {
-            dto.userId = currentUserId;
-        }
-
-        return this.orderService.create(dto, currentUserId);
+    // Esta lógica de forzar el userId dentro del DTO no es necesaria si el servicio
+    // acepta el userId por separado, pero la mantenemos si la necesitas por otras razones.
+    if (currentUserRole !== 'ADMIN') {
+        dto.userId = currentUserId;
     }
+
+    // 🛑 CORRECCIÓN CLAVE: Invertir el orden de los argumentos.
+    // Llama al servicio como: (userId, dto)
+    return this.orderService.create(currentUserId, dto); // ✅ Correcto
+}
 
     // ============================
     // ACTUALIZAR ORDEN (SOLO ADMIN)
