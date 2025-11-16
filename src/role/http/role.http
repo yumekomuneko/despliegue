@@ -6,7 +6,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "nombre": "admin",
+    "nombre": "ADMIN",
     "descripcion": "Acceso completo al sistema"
 }
 
@@ -16,7 +16,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "nombre": "cliente",
+    "nombre": "CLIENT",
     "descripcion": "Usuario registrado con permisos básicos"
 }
 

@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NjMxNTQ0MjEsImV4cCI6MTc2MzI0MDgyMX0.1eIMvB4rcehlncHCOD4VSs9refki9lashXCpaZ0-naY
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIzLCJlbWFpbCI6ImFkcmlAZXhhbXBsZS5jb20iLCJyb2xlIjoiQ0xJRU5UIiwiaWF0IjoxNzYzMjI4MDU4LCJleHAiOjE3NjMzMTQ0NTh9.UCb2n8kf_H1_uL-MI-mh46C83KtziBniUndFkhQBnRU
 POST {{baseUrl}}/categories
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -24,7 +24,7 @@ GET {{baseUrl}}/categories
 Authorization: Bearer {{token}}
 
 ### Obtener categoría por ID
-GET {{baseUrl}}/categories/2
+GET {{baseUrl}}/categories/3
 Authorization: Bearer {{token}}
 
 ### Actualizar categoría

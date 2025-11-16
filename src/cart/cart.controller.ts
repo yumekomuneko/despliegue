@@ -6,6 +6,7 @@ import {
     Delete,
     Param,
     Body,
+    Req,
     ParseIntPipe,
     UseGuards,
 } from '@nestjs/common';
@@ -22,37 +23,86 @@ import { UserRole } from '../user/entities/user.entity';
 export class CartController {
     constructor(private readonly cartService: CartService) {}
 
-    // SOLO ADMIN VE TODOS
+    // ============================
+    // OBTENER TODOS LOS CARRITOS (SOLO ADMIN)
+    // ============================
     @Roles(UserRole.ADMIN)
     @Get()
     findAll() {
         return this.cartService.findAll();
     }
 
-    // USUARIO NORMAL Y ADMIN
+    // ============================
+    // OBTENER UN CARRITO POR ID
+    // ============================
     @Get(':id')
-    findOne(@Param('id', ParseIntPipe) id: number) {
-        return this.cartService.findOne(id);
+    findOne(@Param('id', ParseIntPipe) id: number, @Req() req) {
+  
+        const currentUserId = Number(req.user.userId);
+        const currentUserRole = req.user.role;
+
+        if (currentUserRole === 'ADMIN') {
+            return this.cartService.findOne(id);
+        }
+
+        return this.cartService.findOne(id, currentUserId);
     }
 
+    // ============================
+    // CREAR CARRITO
+    // ============================
     @Post()
-    create(@Body() dto: CreateCartDto) {
+    create(@Body() dto: CreateCartDto, @Req() req) {
+
+        const currentUserId = Number(req.user.userId);
+        const currentUserRole = req.user.role;
+
+        if (currentUserRole !== 'ADMIN') {
+            dto.userId = currentUserId;
+        }
+
         return this.cartService.create(dto);
     }
 
+    // ============================
+    // ACTUALIZAR CARRITO
+    // ============================
     @Patch(':id')
     update(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateCartDto,
+        @Req() req,
     ) {
-        return this.cartService.update(id, dto);
+        const currentUserId = Number(req.user.userId);
+        const currentUserRole = req.user.role;
+
+        if (currentUserRole === 'ADMIN') {
+            return this.cartService.update(id, dto);
+        }
+
+        return this.cartService.update(id, dto, currentUserId);
     }
 
+    // ============================
+    // CHECKOUT (CONFIRMAR COMPRA)
+    // ============================
     @Patch(':id/checkout')
-    checkout(@Param('id', ParseIntPipe) id: number) {
-        return this.cartService.checkout(id);
+    checkout(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    
+        const currentUserId = Number(req.user.userId);
+        const currentUserRole = req.user.role;
+
+        if (currentUserRole === 'ADMIN') {
+            return this.cartService.checkout(id);
+        }
+
+        // Cliente solo puede hacer checkout de su carrito
+        return this.cartService.checkout(id, currentUserId);
     }
 
+    // ============================
+    // ELIMINAR CARRITO (SOLO ADMIN)
+    // ============================
     @Roles(UserRole.ADMIN)
     @Delete(':id')
     remove(@Param('id', ParseIntPipe) id: number) {

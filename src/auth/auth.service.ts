@@ -73,8 +73,13 @@ async register(dto: RegisterDto) {
   }
 
   // Login de usuario
-  async login(email: string, password: string) {
-    const user = await this.usersRepo.findOne({ where: { email } });
+ async login(email: string, password: string) {
+
+    const user = await this.usersRepo.findOne({ 
+        where: { email },
+        relations: ['role']
+    }); 
+
     if (!user) throw new BadRequestException('Usuario no encontrado');
 
     const valid = await argon2.verify(user.password, password);
@@ -83,15 +88,22 @@ async register(dto: RegisterDto) {
     if (!user.isVerified) {
       throw new BadRequestException('Debes verificar tu correo antes de iniciar sesión.');
     }
+  
+    const roleName = user.role.nombre;
 
-    const payload = { sub: user.id, email: user.email, role: user.role };
+    const payload = { 
+        sub: user.id, 
+        email: user.email, 
+        role: roleName 
+    }; 
+    
     const token = this.jwtService.sign(payload);
 
     return {
-      access_token: token,
-      user: { id: user.id, email: user.email, role: user.role.nombre },
+        access_token: token,
+        user: { id: user.id, email: user.email, role: roleName },
     };
-  }
+}
 
   // Solicitud de recuperación de contraseña
   async requestPasswordReset(email: string) {

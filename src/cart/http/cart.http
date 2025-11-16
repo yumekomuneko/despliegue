@@ -1,14 +1,12 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NjMxNTczNzMsImV4cCI6MTc2MzI0Mzc3M30.BzI7NpiIzdAUcGFSOMWOl9OqpcJumK0DjsVpzy98Hwg
-
-### Crear un carrito para un usuario
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwiaWF0IjoxNzYzMjQ2NTc2LCJleHAiOjE3NjMzMzI5NzZ9.WoU751ytbmqjzkp_BcPdiDnjuxnutUWMJhoYmo1A9wM
 POST {{baseUrl}}/carts
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "userId": 1,
-    "productIds": [2]
+    "userId": 11,
+    "productIds": [2,10]
 }
 
 ### Obtener todos los carritos (solo admin)
@@ -20,16 +18,16 @@ GET {{baseUrl}}/carts/1
 Authorization: Bearer {{token}}
 
 ### Actualizar productos del carrito
-PATCH {{baseUrl}}/carts/1
+PATCH {{baseUrl}}/carts/7
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "productIds": [3]
+    "productIds": [2]
 }
 
 ### Confirmar compra (checkout)
-PATCH {{baseUrl}}/carts/1/checkout
+PATCH {{baseUrl}}/carts/4/checkout
 Authorization: Bearer {{token}}
 
 ### Eliminar carrito

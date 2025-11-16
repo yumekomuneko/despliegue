@@ -1,41 +1,78 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQURNSU4iLCJpYXQiOjE3NjMxNTczNzMsImV4cCI6MTc2MzI0Mzc3M30.BzI7NpiIzdAUcGFSOMWOl9OqpcJumK0DjsVpzy98Hwg
-### Crear un pedido
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjIyLCJlbWFpbCI6ImFuZ2llY2FiYWwzNUBnbWFpbC5jb20iLCJyb2xlIjoiQ0xJRU5UIiwiaWF0IjoxNzYzMjQ3ODY4LCJleHAiOjE3NjMzMzQyNjh9.wmPAjDOn00aDMIvcNY7KBgR3Ew6f8JIqK00jZHAd2Mc
+
+
+### 1. Crear una orden (El userId se toma automáticamente del token) (solo admin)
 POST {{baseUrl}}/orders
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "userId": 1,
-    "cartId": 1
+    "cartId": 4
 }
 
-### Obtener todos los pedidos (solo admin)
-GET {{baseUrl}}/orders
+### 2. Ver mis órdenes (solo cliente)
+GET {{baseUrl}}/orders/my-orders
 Authorization: Bearer {{token}}
 
-### Obtener un pedido específico
+### 3. Ver una orden específica (solo cliente)
 GET {{baseUrl}}/orders/1
 Authorization: Bearer {{token}}
 
-### Actualizar pedido (cambiar cart o user)
+### 5. Ver todas las órdenes (solo admin)
+GET {{baseUrl}}/orders
+Authorization: Bearer {{token}}
+
+### 6. Cancelar orden (solo cliente)
+PATCH {{baseUrl}}/orders/7/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "CANCELLED"
+}
+
+### 7. Intentar cambiar estado de orden (solo cliente)
+PATCH {{baseUrl}}/orders/1/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "CONFIRMED"
+}
+
+### 8. INTENTAR ACTUALIZAR ORDEN (solo admin - debe dar 403)
 PATCH {{baseUrl}}/orders/1
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "status": "PENDING"
+    "total": 50000
 }
 
-### Cambiar estado del pedido
-PATCH {{baseUrl}}/orders/2/status
+### 9. INTENTAR ELIMINAR ORDEN (solo admin - debe dar 403)
+DELETE {{baseUrl}}/orders/1
+Authorization: Bearer {{token}}
+
+### ========================================
+### CASOS DE ERROR
+### ========================================
+
+### 10. Intentar crear orden con carrito con id diferente al del usuario (debe dar 403)
+POST {{baseUrl}}/orders
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "status": "PENDING"
+    "userId": 13,
+    "cartId": 1
 }
 
-### Eliminar pedido
-DELETE {{baseUrl}}/orders/1
+### 11. Intentar crear orden con carta sin checkout (debe dar 400)
+POST {{baseUrl}}/orders
 Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "cartId": 2
+}

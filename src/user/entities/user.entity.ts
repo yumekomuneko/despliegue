@@ -65,6 +65,7 @@ export class User {
   @OneToMany(() => Cart, (cart) => cart.user)
   carts: Cart[];
 
+  // Relación con roles
   @ManyToOne(()=> Role, (role)=>role.users)
   @JoinColumn({name: 'roleId'})
   role: Role;
