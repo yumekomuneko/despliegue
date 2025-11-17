@@ -1,12 +1,19 @@
-/*import { Module } from '@nestjs/common';
-import { ChatGateway } from '../chat/chat.gateway';
-import { AuthGateway } from '../auth/auth.gateway';
+// chat.module.ts
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { ChatGateway } from './chat.gateway';
 import { ChatService } from './chat.service';
+import { ProductModule } from '../product/product.module';
 
 @Module({
-    providers: [ChatGateway, AuthGateway, ChatService],
-    exports: [ChatGateway]
+  imports: [
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'secretKey',
+      signOptions: { expiresIn: '1d' }
+    }),
+    ProductModule
+  ],
+  providers: [ChatGateway, ChatService],
+  exports: [ChatGateway]
 })
-export class ChatModule {
-
-} */
+export class ChatModule {}

@@ -15,14 +15,14 @@ import { RoleModule } from './role/role.module';
 import { UserModule } from './user/user.module';
 import { CartModule } from './cart/cart.module';
 import { AuthModule } from './auth/auth.module';
-/*import { ChatModule } from './chat/chat.module'; */
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    /*ChatModule,*/
+    ChatModule,
     AuthModule,
     TypeOrmModule.forRoot({
       type: 'postgres',

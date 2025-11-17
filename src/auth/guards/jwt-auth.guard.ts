@@ -7,7 +7,7 @@ import { ExecutionContext } from '@nestjs/common';
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
 
-    constructor(private reflector: Reflector) { // <-- ¡Debe estar aquí!
+    constructor(private reflector: Reflector) { 
         super();
     }
 
