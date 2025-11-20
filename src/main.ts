@@ -93,10 +93,10 @@ async function bootstrap() {
     const port = process.env.PORT || 3000;
     await app.listen(port, '0.0.0.0');
 
-    // Logs informativos
-    console.log(`🚀 Servidor corriendo en: http://localhost:${port}`);
-    console.log(`📘 Swagger disponible en: http://localhost:${port}/api`);
-    console.log(`💬 Chat disponible en: http://localhost:${port}/ecomerce-chat`);
+    console.log(`🚀 Servidor corriendo en: http://0.0.0.0:${port}`);
+    console.log(`📘 Swagger disponible en: http://0.0.0.0:${port}/api`);
+    console.log(`💬 Chat disponible en: http://0.0.0.0:${port}/ecomerce-chat`);
+
 
   } catch (error) {
     console.error('Error al iniciar aplicación:', error);
