@@ -1,16 +1,59 @@
 @baseUrl = http://localhost:3000
 @token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI3LCJlbWFpbCI6ImRhamFyeXRoaGVybmFuZGV6QGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2MzY1NDEyNywiZXhwIjoxNzYzNzQwNTI3fQ.mKxYAm0aWcOVhrjpAZnGD1KHBCjif7GAR8_4XeVCHZE
-### Crear producto
+
+
+#########################################################
+#              DUMMYJSON — EXTERNAL TECH API
+#########################################################
+
+### 1. Obtener todos los productos tech externos
+GET {{baseUrl}}/products/external/tech
+Authorization: Bearer {{token}}
+
+### 2. Buscar productos tech externos (ej: iphone)
+GET {{baseUrl}}/products/external/search?q=iphone
+Authorization: Bearer {{token}}
+
+### 3. Buscar laptops
+GET {{baseUrl}}/products/external/search?q=laptop
+Authorization: Bearer {{token}}
+
+### 4. Buscar tablets
+GET {{baseUrl}}/products/external/search?q=tablet
+Authorization: Bearer {{token}}
+
+### 5. Importar productos tech desde DummyJSON (SOLO ADMIN)
+POST {{baseUrl}}/products/import/tech
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "categoryIds": [1, 3, 5]
+}
+
+### 5.1 Importar sin categorías (usa valores por defecto)
+POST {{baseUrl}}/products/import/tech
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{}
+
+
+#########################################################
+#                     CRUD — PRODUCTOS LOCALES
+#########################################################
+
+### Crear producto simple
 POST {{baseUrl}}/products
 Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
     "name": "Telefono celular",
-    "description": "Terreneitor 3000 ultimo en tecnology, más rapido que camaron que se duerme",
+    "description": "Terreneitor 3000, último en tecnología. Más rápido que camarón que se duerme.",
     "price": 100000,
     "cantidad": 10,
-    "imageUrl": "https://example.com/mouse.jpg",
+    "imageUrl": "https://example.com/phone.jpg",
     "categories": [1, 2]
 }
 
@@ -21,7 +64,7 @@ Content-Type: application/json
 
 {
     "name": "Teclado ergonómico",
-    "description": "Una teclado ergonómica de alta calidad",
+    "description": "Teclado ergonómico de alta calidad",
     "price": 10000,
     "available": true,
     "imageUrl": "https://example.com/keyboard.jpg",
@@ -32,11 +75,11 @@ Content-Type: application/json
 GET {{baseUrl}}/products
 Authorization: Bearer {{token}}
 
-### Obtener producto por ID
+### Obtener un producto por ID
 GET {{baseUrl}}/products/2
 Authorization: Bearer {{token}}
 
-### Actualizar producto
+### Actualizar un producto
 PATCH {{baseUrl}}/products/1
 Authorization: Bearer {{token}}
 Content-Type: application/json
@@ -46,6 +89,6 @@ Content-Type: application/json
     "available": false
 }
 
-### Eliminar producto (Ahora lo pruebo)
+### Eliminar un producto
 DELETE {{baseUrl}}/products/1
 Authorization: Bearer {{token}}

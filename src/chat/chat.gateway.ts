@@ -235,24 +235,6 @@ client.on('login', (p) => client.emit('authenticate', p));
           });
         }
         break;
-
-      case 4: // Ver pedidos
-        // Ejecutar y regresar al menú
-        await this.handleViewOrders(client, context);
-        context.currentStep = 'welcome';
-        break;
-
-      default:
-        client.emit('bot_message', {
-          type: 'options',
-          message: 'Por favor selecciona una opción del menú:',
-          options: [
-            'Consultar disponibilidad de productos',
-            'Comparar productos',
-            'Consultar garantías',
-            'Consultar Métodos de pago'
-          ]
-        });
     }
   }
 
@@ -364,73 +346,7 @@ client.on('login', (p) => client.emit('authenticate', p));
     }
   }
 
-  // --- Mostrar historial de pedidos ---
-  private async handleViewOrders(client: Socket, context: ChatContext) {
-    try {
-      const customerId = client.data.user?.sub;
-      const userRole = client.data.user?.role;
 
-      this.logger.log('🔍 Debug - User data: ' + JSON.stringify(client.data.user));
 
-      // Validación: sub debe ser number (ID) y role no "guest"
-      if (typeof customerId !== 'number' || userRole === 'guest') {
-        client.emit('bot_message', {
-          type: 'auth_required',
-          message: 'Para ver sus pedidos necesita iniciar sesión. Por favor autentíquese primero.',
-          options: ['Volver al menú principal']
-        });
-        context.currentStep = 'welcome';
-        return;
-      }
-
-      const orderHistory = await this.chatService.getCustomerOrderHistory(String(customerId));
-
-      if (!orderHistory || orderHistory.totalOrders === 0) {
-        client.emit('bot_message', {
-          type: 'no_orders',
-          message: '📭 Aún no tienes pedidos en tu historial.',
-          options: ['Volver al menú principal', 'Consultar productos disponibles']
-        });
-        context.currentStep = 'welcome';
-        return;
-      }
-
-      client.emit('bot_message', {
-        type: 'order_history',
-        message: this.formatOrderHistoryMessage(orderHistory),
-        orderHistory,
-        options: ['Volver al menú principal', 'Consultar disponibilidad de productos', 'Ver detalles de un pedido específico']
-      });
-
-      context.currentStep = 'welcome';
-    } catch (error) {
-      this.logger.error('Error obteniendo historial de pedidos', error);
-      client.emit('bot_message', {
-        type: 'error',
-        message: '❌ Lo siento, no pude obtener tu historial de pedidos en este momento.',
-        options: ['Volver al menú principal']
-      });
-      context.currentStep = 'welcome';
-    }
-  }
-
-  private formatOrderHistoryMessage(orderHistory: any): string {
-    let message = `📦 **HISTORIAL DE PEDIDOS**\n\n`;
-    message += `✅ Total de pedidos: ${orderHistory.totalOrders}\n`;
-    message += `💰 Total gastado: $${orderHistory.totalSpent}\n`;
-    message += `🏷️ Categoría favorita: ${orderHistory.favoriteCategory}\n\n`;
-    message += `📋 **Pedidos recientes:**\n`;
-
-    if (orderHistory.recentOrders && orderHistory.recentOrders.length > 0) {
-      orderHistory.recentOrders.forEach((order: any, index: number) => {
-        message += `\n${index + 1}. Pedido #${order.id}\n`;
-        message += `   📅 Fecha: ${new Date(order.date).toLocaleDateString()}\n`;
-        message += `   💰 Total: $${order.total}\n`;
-        message += `   📦 Items: ${order.items} productos\n`;
-        message += `   🟢 Estado: ${order.status}\n`;
-      });
-    }
-
-    return message;
-  }
+  
 }
