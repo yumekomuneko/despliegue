@@ -1,9 +1,9 @@
 import { OnGatewayConnection, OnGatewayDisconnect, SubscribeMessage, WebSocketGateway } from '@nestjs/websockets';
-import { Socket, Server } from 'socket.io';
-import {JwtService} from '@nestjs/jwt';
+import { Socket } from 'socket.io';
+import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
 
-@WebSocketGateway({cors: true})
+@WebSocketGateway({ cors: true })
 export class AuthGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private jwtService: JwtService) {}
 
@@ -11,16 +11,19 @@ export class AuthGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const token = client.handshake.auth.token;
 
-      if (!token){
+      if (!token) {
         client.disconnect();
         return;
       }
 
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.JWT_SECRET || 'super_secret_key'
+      });
+
       client.data.user = payload;
 
-      console.log(`Usario ${payload.username} conectado`);
-    } catch (error){
+      console.log(`Usuario ${payload.email} conectado`);
+    } catch (error) {
       console.error('Error de autenticación:', error);
       client.disconnect();
       return;
@@ -30,11 +33,11 @@ export class AuthGateway implements OnGatewayConnection, OnGatewayDisconnect {
   handleDisconnect(client: Socket) {
     const userPayload = client.data.user;
 
-    if (userPayload){
-      console.log(`Usuario ${userPayload.username} desconectado`);
-    } else{
+    if (userPayload) {
+      console.log(`Usuario ${userPayload.email} desconectado`);
+    } else {
       console.log('Usuario no autenticado desconectado');
     }
   }
-
 }
+

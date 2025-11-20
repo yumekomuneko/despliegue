@@ -6,9 +6,10 @@ import { User } from '../user/entities/user.entity';
 import { CartService } from './cart.service';
 import { CartController } from './cart.controller';
 import { CartItem } from './entities/cart-item.entity';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Cart, Product, User, CartItem])],
+    imports: [TypeOrmModule.forFeature([Cart, Product, User, CartItem]), JwtModule],
     controllers: [CartController],
     providers: [CartService],
     exports: [CartService, TypeOrmModule]

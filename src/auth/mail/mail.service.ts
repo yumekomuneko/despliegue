@@ -9,28 +9,49 @@ export class MailService {
 
     constructor(private configService: ConfigService) {
         this.transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
+            service: 'gmail.com',
             port: 587,
             secure: false, // TLS
             auth: {
                 user: this.configService.get<string>('MAIL_USER'),
                 pass: this.configService.get<string>('MAIL_PASS'),
             },
+            
+            tls: {
+                rejectUnauthorized: false
+            }
         });
     }
 
+    async onModuleInit(){
+        await this.verifyConnection();
+    }
+
+    async verifyConnection() {
+        try {
+            await this.transporter.verify();
+            this.logger.log('✅ Conexión con SMTP establecida correctamente');
+        } catch (error) {
+            this.logger.error('❌ Error conectando con SMTP:', error);
+        }
+    }
+
+
     async sendMail(to: string, subject: string, html: string) {
-        const info = await this.transporter.sendMail({
-        from: `"TechStore" <${this.configService.get<string>('MAIL_USER')}>`,
-        to,
-        subject,
-        html,
+        try{
+            const info = await this.transporter.sendMail({
+                from: `"TechStore" <${this.configService.get<string>('MAIL_USER')}>`,
+                to,
+                subject,
+                html,
         });
-
-    this.logger.debug(`Correo enviado a ${to} (ID: ${info.messageId})`);
-    return info;
-}
-
+        this.logger.log(`✅ Correo enviado a ${to} (ID: ${info.messageId})`);
+            return info;
+        } catch (error) {
+            this.logger.error(`❌ Error enviando correo a ${to}:`, error.message);
+            throw error;
+        }
+    }
 
     async sendVerificationEmail(to: string, token: string) {
     const baseUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000'; 

@@ -1,21 +1,22 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { IsString, MinLength, IsOptional } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * DTO para crear un nuevo rol en el sistema.
+ */
 export class CreateRoleDto {
-
     @ApiProperty({
-        name: 'nombre',
         description: 'Nombre del rol',
-        example: 'ADMIN'
+        example: 'ADMIN',
+        minLength: 3,
     })
     @IsString()
     @MinLength(3)
     nombre: string;
 
-    @ApiProperty({
-        name: 'descripcion',
+    @ApiPropertyOptional({
         description: 'Descripción del rol',
-        example: 'Rol para administradores'
+        example: 'Rol con permisos administrativos completos',
     })
     @IsOptional()
     @IsString()

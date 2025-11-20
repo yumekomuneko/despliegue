@@ -6,9 +6,10 @@ import { Order } from '../order/entities/order.entity';
 import { Payment } from '../payment/entities/payment.entity';
 import { InvoiceService } from './invoice.service';
 import { InvoiceController } from './invoice.controller';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Invoice, User, Order, Payment])],
+    imports: [TypeOrmModule.forFeature([Invoice, User, Order, Payment]), JwtModule],
     controllers: [InvoiceController],
     providers: [InvoiceService],
     exports: [InvoiceService],

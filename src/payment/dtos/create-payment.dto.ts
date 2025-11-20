@@ -1,26 +1,46 @@
-import { IsInt, IsNumber, IsString, IsOptional, Min, IsEnum, IsNotEmpty } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, Min, IsEnum, IsNotEmpty } from 'class-validator';
+import { ApiPropertyOptional, ApiProperty } from '@nestjs/swagger';
 import { PaymentMethod } from '../entities/payment.entity';
 
+/**
+ * DTO para crear un pago.
+ * 
+ * Algunos campos son inyectados automáticamente desde el backend (JWT o lógica interna),
+ * por lo que son opcionales en la solicitud.
+ */
 export class CreatePaymentDto {
-    // El único campo obligatorio en el cuerpo de la solicitud (body) es el OrderId
-    @IsNotEmpty()
-    @IsNumber()
-    orderId: number; 
+  @ApiProperty({
+    description: 'ID de la orden asociada al pago',
+    example: 12,
+  })
+  @IsNotEmpty()
+  @IsNumber()
+  orderId: number; 
 
-    // CLAVE: El userId se INYECTA desde el JWT en el controlador. No debe ser obligatorio en el body.
-    @IsOptional()
-    @IsNumber()
-    userId?: number; 
-    
-    // CLAVE: El amount DEBERÍA ser calculado por el backend (lo corregiremos después), 
-    // pero por ahora lo hacemos opcional para que la validación pase si no lo envías.
-    @IsOptional()
-    @IsNumber()
-    @Min(0.01)
-    amount?: number; 
-
-    // CLAVE: El method se fija a 'STRIPE' en el controlador o servicio.
+  @ApiPropertyOptional({
+    description: 'ID del usuario que realiza el pago (inyectado desde JWT)',
+    example: 5,
+  })
   @IsOptional()
-    @IsEnum(PaymentMethod)
-    method?: PaymentMethod;
-  }
+  @IsNumber()
+  userId?: number; 
+  
+  @ApiPropertyOptional({
+    description: 'Monto del pago (calculado normalmente por el backend)',
+    example: 35000,
+    minimum: 0.01,
+  })
+  @IsOptional()
+  @IsNumber()
+  @Min(0.01)
+  amount?: number; 
+
+  @ApiPropertyOptional({
+    description: 'Método de pago (STRIPE, CASH, TRANSFER)',
+    enum: PaymentMethod,
+    example: PaymentMethod.STRIPE,
+  })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  method?: PaymentMethod;
+}

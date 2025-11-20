@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoiYW5naWVjYWJhbDM1QGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjM2MTMwMzksImV4cCI6MTc2MzY5OTQzOX0.RPNDO9GuLBwZ_82DY91gn4H6liluLRKBxmACepy1ppU
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI3LCJlbWFpbCI6ImRhamFyeXRoaGVybmFuZGV6QGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2MzY1NjAzMCwiZXhwIjoxNzYzNzQyNDMwfQ.Ob14k9Il0kkiIlSYhFWfD3MTjdMSBj0vzYfZZZD3LMc
 
 ### Crear una Orden (USO CLIENTE)
 // El stock se descuenta aquí. El cartId debe ser del usuario y estar checkedOut: true.
@@ -8,7 +8,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "cartId": 4
+    "cartId": 8
 }
 
 

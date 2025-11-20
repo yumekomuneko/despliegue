@@ -1,309 +1,200 @@
+/**
+ * Controlador encargado de gestionar la autenticación de usuarios.
+ *
+ * Define los endpoints para registro, login, verificación de correo
+ * y restablecimiento de contraseña.
+ */
+
 import { Controller, Post, Body, Get, Query } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { create } from 'domain';
-import { error } from 'console';
+
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 @ApiTags('Auth')
-@ApiBearerAuth()
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @ApiBody({ type: RegisterDto,
-    description: 'Registro de usuario',
-    required: true,
-    examples: {
-      exitoso: {
-        summary: 'Registro exitoso',
-        value: {
-          cli_nombre: "Sofia",
-          cli_apellido: "Aponte",
-          cli_email: "apontemurciamateo@gmail.com",
-          cli_telefono: "32000000",
-          cli_password: "12345678"
-        },
-    }, errorValidation: {
-        summary: 'Ejemplo de error (correo duplicado)',
-        value: {
-          cli_nombre: "Sofia",
-          cli_apellido: "Aponte",
-          cli_email: "apontemurciamateo@gmail.com",
-          cli_telefono: "32000000",
-          cli_password: "12345678"
-        },
-      },      
-   }
-})
+  // ============================================================
+  // Registrar usuario
+  // ============================================================
+  /**
+   * Crea un nuevo usuario en el sistema.
+   */
+  @Post('register')
+  @ApiOperation({ summary: 'Registrar usuario' })
+  @ApiBody({ type: RegisterDto })
   @ApiResponse({
-    status: 200,
-    description: 'Usuario registrado',
-    type: Object,
+    status: 201,
+    description: 'Usuario registrado correctamente.',
     content: {
       'application/json': {
         example: {
-          message: 'Usuario registrado. Verifica tu correo.',
-          data: {
-            cli_id: 1,
-            cli_nombre: "Sofia",
-            cli_apellido: "Aponte",
-            cli_email: "apontemurciamateo@gmail.com",
-            cli_telefono: "32000000",
-            createdAt: "2021-03-01T00:00:00.000Z",
-          }
-        }
-      }
+          message: 'Usuario registrado exitosamente.',
+          user: { id: 5, email: 'user@example.com', nombre: 'Juan Pérez' },
+        },
+      },
     },
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de registro incorrectos o correo duplicado',
-    type: Object,
-    content: {
-      'application/json': {
-        example: {
-          coreoDuplicado: "El correo electrónico ya existe",
-          value: {
-            statusCode: 400,
-            message: "Datos de registro incorrectos o correo duplicado",
-            error: "Bad request"
-          },
-          errorFormato: {
-            summary: 'Formato de datos incorrectos',
-            value: {
-              statusCode: 400,
-              message: [
-                'cli_correo El correo electrónico no es válido',
-                'cli_password La contraseña debe tener al menos 6 caracteres',
-              ],
-              error: 'Bad request',
-          }
-        },
-      }  
-    },
-    },
+    description: 'Datos inválidos.',
   })
-
-  @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
+  // ============================================================
+  // Verificar email con token
+  // ============================================================
+  /**
+   * Verifica el correo electrónico del usuario mediante un token enviado por email.
+   */
+  @Get('verify')
+  @ApiOperation({ summary: 'Verificar email con token' })
+  @ApiQuery({ name: 'token', required: true, description: 'Token de verificación' })
   @ApiResponse({
     status: 200,
-    description: 'Correo de verificación enviado',
-    type: Object,
+    description: 'Correo verificado correctamente.',
     content: {
       'application/json': {
-        example: {
-          message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          data: {
-            message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          },
-        },
-      }
+        example: { message: 'Correo verificado exitosamente.' },
+      },
     },
   })
   @ApiResponse({
     status: 400,
-    description: 'Datos de registro incorrectos o correo duplicado',
-    type: Object,
+    description: 'Token inválido o expirado.',
     content: {
-      'application/json': {
-        example: {
-          errorFormato: {
-            summary: 'Formato de datos incorrectos',
-            value: {
-              statusCode: 400,
-              message: [
-                'cli_correo El correo electrónico no es válido',
-                'cli_password La contraseña debe tener al menos 6 caracteres',
-              ],
-              error: 'Bad request',
-          } 
-        },
-      }  
+      'application/json': { example: { message: 'Token inválido o expirado.' } },
     },
-  }
   })
-
-  @Get('verify')
   verifyEmail(@Query('token') token: string) {
     return this.authService.verifyEmail(token);
   }
 
+  // ============================================================
+  // Iniciar sesión
+  // ============================================================
+  /**
+   * Permite al usuario autenticarse en el sistema.
+   */
+  @Post('login')
+  @ApiOperation({ summary: 'Iniciar sesión' })
+  @ApiBody({ type: LoginDto })
   @ApiResponse({
     status: 200,
-    description: 'Correo de verificación enviado',
-    type: Object,
+    description: 'Inicio de sesión exitoso.',
     content: {
       'application/json': {
-        example: {
-          message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          data: {
-            message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          },
-        },
-      }  
+        example: { token: 'jwt-token-aqui', message: 'Login exitoso' },
+      },
     },
   })
   @ApiResponse({
-    status: 400,
-    description: 'Datos de registro incorrectos o correo duplicado',
-    type: Object,
+    status: 401,
+    description: 'Credenciales incorrectas.',
     content: {
-      'application/json': {
-        example: {
-          errorFormato: {
-            summary: 'Formato de datos incorrectos',
-            value: {
-              statusCode: 400,
-              message: [
-                'cli_correo El correo electrónico no es válido',
-                'cli_password La contraseña debe tener al menos 6 caracteres',
-              ],
-              error: 'Bad request',
-          } 
-        },
-      }  
+      'application/json': { example: { message: 'Email o contraseña incorrectos' } },
     },
-    }
   })
-  @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
 
+  // ============================================================
+  // Solicitar restablecimiento de contraseña
+  // ============================================================
+  /**
+   * Envía un correo con token para restablecer la contraseña del usuario.
+   */
+  @Post('request-reset')
+  @ApiOperation({ summary: 'Solicitar restablecimiento de contraseña' })
+  @ApiBody({ schema: { properties: { email: { type: 'string' } } } })
   @ApiResponse({
     status: 200,
-    description: 'Correo de verificación enviado a la dirección de correo proporcionada',
-    type: Object,
+    description: 'Correo de recuperación enviado.',
     content: {
-      'application/json': {
-        example: {
-          message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          data: {
-            message: 'Correo de verificación enviado a apontemurciamateo@gmail.com',
-          },
-        },
-      }
+      'application/json': { example: { message: 'Correo enviado correctamente.' } },
     },
   })
   @ApiResponse({
-    status: 400,
-    description: 'No se ha podido enviar el correo de verificación',
-    type: Object,
+    status: 404,
+    description: 'Email no encontrado.',
     content: {
-      'application/json': {
-        example: {
-          errorFormato: {
-            summary: 'No se ha podido enviar el correo de verificación',
-            value: {
-              statusCode: 400,
-              message: [
-                'No se ha podido enviar el correo de verificación',
-                'Verifica la dirección de correo proporcionada',
-              ],
-              error: 'Bad request',
-          } 
-        },
-      }  
+      'application/json': { example: { message: 'Email no registrado.' } },
     },
-  }
-})
-  @Post('request-reset')
+  })
   requestReset(@Body('email') email: string) {
     return this.authService.requestPasswordReset(email);
   }
-  @ApiResponse({
-    status: 200,
-    description: 'Link de restablecimiento de contraseña enviado',
-    type: Object,
-    content: {
-      'application/json': {
-        example: {
-          message: 'Link de restablecimiento de contraseña enviado',
-          data: {
-            message: 'Verifica tu correo para restablecer tu contraseña',
-          },
-        },
-      }  
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'No se ha podido enviar el link de restablecimiento de contraseña',
-    type: Object,
-    content: {
-      'application/json': {
-        example: {
-          errorFormato: {
-            summary: 'Problema al enviar el link de restablecimiento de contraseña',
-            value: {
-              statusCode: 400,
-              message: [
-                'No se ha podido enviar el link de restablecimiento de contraseña',
-                'Error al intentar enviar el correo',
-              ],
-              error: 'Bad request',
-          } 
-        },
-      }  
-    },
-    }
-  })
+
+  // ============================================================
+  // Endpoint temporal para comprobar token de reseteo
+  // ============================================================
+  /**
+   * Ruta temporal para verificar token de restablecimiento.
+   * Se recomienda usar POST /auth/reset-password para completar el cambio.
+   */
   @Get('reset-password')
-    showResetPasswordPage(@Query('token') token: string) {
-      
-        return { 
-            status: "OK", 
-            message: "Ruta temporal de prueba para restablecimiento recibida.",
-            instruccion: "Ahora, debe probar la ruta POST en tu cliente HTTP (Postman/ThunderClient) para ejecutar el cambio de contraseña.",
-            token_recibido: token 
-        };
-    }
-     @ApiResponse({
+  @ApiOperation({ summary: 'Comprobar token de reseteo (temporal)' })
+  @ApiQuery({ name: 'token', required: true, description: 'Token de reseteo' })
+  @ApiResponse({
     status: 200,
-    description: 'Contraseña restablecida correctamente',
-    type: Object,
+    description: 'Token recibido.',
     content: {
       'application/json': {
         example: {
-          message: 'La contraseña ha sido restablecida correctamente',
-          data: {
-            message: 'Contraseña restablecida correctamente',
-          },
+          status: 'OK',
+          message: 'Ruta temporal de prueba para restablecimiento recibida.',
+          instruccion: 'Usa ahora la ruta POST /auth/reset-password.',
+          token_recibido: 'token-aqui',
         },
-      }  
+      },
+    },
+  })
+  showResetPasswordPage(@Query('token') token: string) {
+    return { 
+      status: 'OK',
+      message: 'Ruta temporal de prueba para restablecimiento recibida.',
+      instruccion: 'Usa ahora la ruta POST /auth/reset-password en Postman o Thunder Client.',
+      token_recibido: token,
+    };
+  }
+
+  // ============================================================
+  // Restablecer contraseña
+  // ============================================================
+  /**
+   * Permite restablecer la contraseña usando un token válido.
+   */
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Restablecer contraseña' })
+  @ApiBody({ type: ResetPasswordDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Contraseña restablecida correctamente.',
+    content: {
+      'application/json': { example: { message: 'Contraseña actualizada correctamente.' } },
     },
   })
   @ApiResponse({
     status: 400,
-    description: 'No se ha podido restablecer la contraseña',
-    type: Object,
+    description: 'Token inválido o expirado.',
     content: {
-      'application/json': {
-        example: {
-          errorFormato: {
-            summary: 'Problema al restablecer la contraseña',
-            value: {
-              statusCode: 400,
-              message: [
-                'No se ha podido restablecer la contraseña',
-                'Error al intentar restablecer la contraseña',
-              ],
-              error: 'Bad request',
-          } 
-        },
-      }  
+      'application/json': { example: { message: 'Token inválido o expirado.' } },
     },
-    }
   })
-    @Post('reset-password')
-    resetPassword(@Body() dto: ResetPasswordDto) {
-        return this.authService.resetPassword(dto.token, dto.newPassword);
-    }
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
 }

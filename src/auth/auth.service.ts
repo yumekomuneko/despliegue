@@ -28,6 +28,9 @@ export class AuthService {
   }
 
 async register(dto: RegisterDto) { 
+    const roleName = dto.role || UserRole.CLIENT;
+    const roleEntity = await this.roleService.findOneByName(roleName as string);
+    if(!roleEntity) throw new InternalServerErrorException(`El rol ${roleName} no existe`);
     const exists = await this.usersRepo.findOne({ where: { email: dto.email } });
     if (exists) throw new BadRequestException('El usuario ya existe');
 
@@ -42,7 +45,7 @@ async register(dto: RegisterDto) {
       telefono: dto.telefono,
       verificationToken,
       verificationTokenExpiresAt: this.addHours(new Date(), 5),
-      roleId: 2,
+      role: roleEntity,
       isVerified: false,
     });
 
@@ -73,7 +76,7 @@ async register(dto: RegisterDto) {
   }
 
   // Login de usuario
- async login(email: string, password: string) {
+  async login(email: string, password: string) {
 
     const user = await this.usersRepo.findOne({ 
         where: { email },
@@ -100,11 +103,13 @@ async register(dto: RegisterDto) {
         role: roleName 
     }; 
     
-    const token = this.jwtService.sign(payload);
+    const access_token = await this.jwtService.signAsync(payload, {
+        secret: process.env.JWT_SECRET || 'super_secret_key',
+        expiresIn: '1d', 
+    });
 
     return {
-        access_token: token,
-        user: { id: user.id, email: user.email, role: roleName },
+        access_token: access_token
     };
 }
 

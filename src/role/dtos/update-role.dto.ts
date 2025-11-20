@@ -1,25 +1,24 @@
 import { PartialType } from '@nestjs/mapped-types';
 import { CreateRoleDto } from './create-role.dto';
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, MinLength, IsOptional } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * DTO para actualizar un rol existente.
+ * 
+ * Todos los campos son opcionales y permiten modificar únicamente
+ * los que el usuario proporcione.
+ */
 export class UpdateRoleDto extends PartialType(CreateRoleDto) {
-
-    @ApiProperty({
-        name: 'nombre',
+    @ApiPropertyOptional({
         description: 'Nombre del rol',
-        example: 'ADMIN'
+        example: 'ADMIN',
+        minLength: 3,
     })
-    @IsString()
-    @MinLength(3)
-    nombre: string;
+    nombre?: string;
 
-    @ApiProperty({
-        name: 'descripcion',
+    @ApiPropertyOptional({
         description: 'Descripción del rol',
-        example: 'Rol para administradores'
+        example: 'Rol con permisos administrativos completos',
     })
-    @IsOptional()
-    @IsString()
     descripcion?: string;
 }

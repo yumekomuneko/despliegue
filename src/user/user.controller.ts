@@ -1,26 +1,45 @@
+/**
+ * Controlador encargado de gestionar las operaciones relacionadas con los usuarios.
+ *
+ * Incluye endpoints para consultar perfiles, listar usuarios, crear, actualizar
+ * y eliminar registros. Además distingue entre acciones de usuario autenticado
+ * y operaciones exclusivas del rol ADMIN.
+ *
+ * Todas las rutas están protegidas con autenticación JWT y verificación de roles,
+ * excepto la creación, que puede configurarse como pública según sea necesario.
+ */
+
 import {
     Controller,
     Get,
+    Post,
     Patch,
+    Delete,
     Param,
     Body,
+    ParseIntPipe,
     UseGuards,
     Request,
     ForbiddenException,
-    Post,
-    Delete
-    , HttpStatus
 } from '@nestjs/common';
+import {
+    ApiBearerAuth,
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiBody,
+    ApiParam,
+} from '@nestjs/swagger';
+
 import { UserService } from './user.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole } from './entities/user.entity';
-import { UpdateUserDto } from './dtos/update-user.dto';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto } from './dtos/create-user.dto';
 import { Public } from '../auth/decorators/public.decorator';
-import { ApiResponse } from '@nestjs/swagger';
+import { UserRole } from './entities/user.entity';
+
+import { CreateUserDto } from './dtos/create-user.dto';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -29,440 +48,256 @@ import { ApiResponse } from '@nestjs/swagger';
 export class UserController {
     constructor(private readonly userService: UserService) {}
 
-    /** Obtener datos del usuario autenticado */
+    // =========================================================================
+    // Obtener perfil del usuario autenticado
+    // =========================================================================
+
+    /**
+     * Retorna la información del usuario autenticado mediante su token JWT.
+     *
+     * Esta ruta permite que cada usuario consulte únicamente su propio perfil.
+     */
+    @Get('profile')
+    @ApiOperation({
+        summary: 'Obtener el perfil del usuario autenticado',
+        description:
+            'Devuelve los datos del usuario que realiza la petición, basándose en el token JWT enviado.',
+    })
     @ApiResponse({
         status: 200,
-        description: 'Ingreso a mi perfil',
-        type: Object,
+        description: 'Perfil obtenido correctamente.',
         content: {
             'application/json': {
                 example: {
-                    message: 'Ingreso a mi perfil',
-                    data: {
-                        id: 1,
-                        nombre: "Sofia",
-                        apellido: "Aponte",
-                        email: "apontemurciamateo@gmail.com",
-                        telefono: "32000000",
-                        password: "12345678",
-                        role: "admin"
-                    },
+                    userId: 12,
+                    name: 'María Gómez',
+                    email: 'maria@example.com',
+                    role: 'client',
                 },
-            }  
+            },
         },
     })
     @ApiResponse({
-        status: 401,
-        description: 'No se ha podido ingresar a mi perfil',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'nombre El nombre no es válido',
-                                'apellido La apellido no es válido',
-                                'email El correo electrónico no es válido',
-                                'telefono El telefono no es válido',
-                                'password La contraseña no es válida',
-                                'role El rol no es válido',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                },
-            }  
-        },
+        status: 403,
+        description: 'Usuario no encontrado o acceso denegado.',
     })
-    @Get('profile')
     async getProfile(@Request() req: any) {
-        const user = await this.userService.findOne(req.user.userId);
+        const user = await this.userService.findOne(req.user.usub);
         if (!user) throw new ForbiddenException('Usuario no encontrado');
         return user;
     }
 
-    /** Obtener todos los usuarios (solo ADMIN) */
+    // =========================================================================
+    // Listar todos los usuarios (ADMIN)
+    // =========================================================================
+
+    /**
+     * Obtiene una lista completa de los usuarios registrados.
+     *
+     * Solo accesible por usuarios con rol ADMIN.
+     */
+    @Get()
+    @Roles(UserRole.ADMIN)
+    @ApiOperation({
+        summary: 'Listar todos los usuarios (solo ADMIN)',
+        description:
+            'Retorna todos los usuarios disponibles en la base de datos. Solo administradores autorizados pueden acceder.',
+    })
     @ApiResponse({
         status: 200,
-        description: 'Obtener todos los usuarios',
-        type: Object,
+        description: 'Usuarios listados correctamente.',
         content: {
             'application/json': {
                 example: {
-                    message: 'Obtener todos los usuarios',
                     data: [
                         {
                             id: 1,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
+                            name: 'Admin Principal',
+                            email: 'admin@example.com',
+                            role: 'admin',
                         },
                         {
                             id: 2,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 3,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 4,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 5,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 6,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 7,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
-                        },
-                        {
-                            id: 8,
-                            nombre: "Sofia",
-                            apellido: "Aponte",
-                            email: "apontemurciamateo@gmail.com",
-                            telefono: "32000000",
-                            password: "12345678",
-                            role: "admin"
+                            name: 'Carlos Pérez',
+                            email: 'carlos@example.com',
+                            role: 'client',
                         },
                     ],
                 },
-            }  
+            },
         },
     })
     @ApiResponse({
-        status: 401,
-        description: 'No se han encontrado los usuarios',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'No se han encontrado los usuarios',
-                                'Error al intentar obtener los usuarios',
-                                'No hay usuarios registrados',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                }
-            }
-        },
-        })
-    @Get()
-    @Roles(UserRole.ADMIN)
+        status: 403,
+        description: 'Acceso denegado: se requiere rol ADMIN.',
+    })
     async findAll() {
         return this.userService.findAll();
     }
 
-    /** Obtener usuario por ID (solo ADMIN) */
-    @ApiResponse({
-        status: 200,
-        description: 'Obtener usuario por ID',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    message: 'Obtener usuario por ID',
-                    data: {
-                        id: 1,
-                        nombre: "Sofia",
-                        apellido: "Aponte",
-                        email: "apontemurciamateo@gmail.com",
-                        telefono: "32000000",
-                        password: "12345678",
-                        role: "admin"
-                    },
-                },
-            }  
-        },
-      })
-      @ApiResponse({
-        status: 401,
-        description: 'No se ha encontrado el usuario',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'No se ha encontrado el usuario',
-                                'Error al intentar obtener el usuario',
-                                'No hay usuarios registrados',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                },
-            }  
-        },
-    })
+    // =========================================================================
+    // Obtener usuario por ID (ADMIN)
+    // =========================================================================
+
+    /**
+     * Consulta los datos de un usuario específico por su ID.
+     *
+     * Solo accesible por administradores.
+     */
     @Get(':id')
     @Roles(UserRole.ADMIN)
-    async findOne(@Param('id') id: number) {
+    @ApiOperation({
+        summary: 'Obtener un usuario por ID (solo ADMIN)',
+    })
+    @ApiParam({ name: 'id', example: 5 })
+    @ApiResponse({
+        status: 200,
+        description: 'Usuario obtenido correctamente.',
+        content: {
+            'application/json': {
+                example: {
+                    id: 5,
+                    name: 'Ana López',
+                    email: 'ana@example.com',
+                    role: 'client',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Usuario no encontrado.',
+    })
+    async findOne(@Param('id', ParseIntPipe) id: number) {
         return this.userService.findOne(id);
     }
 
-    @ApiBody({ type: CreateUserDto,
-        description: 'Crear nuevo usuario',
-        required: true,
-        examples: {
-            exitoso: {
-                summary: 'Crear nuevo usuario exitoso',
-                value: {
-                    nombre: "Sofia",
-                    apellido: "Aponte",
-                    email: "apontemurciamateo@gmail.com",
-                    telefono: "32000000",
-                    password: "12345678",
-                    role: "admin"
-                },
-            },
-            errorFormato: {
-                summary: 'Formato de datos incorrectos',
-                value: {
-                    nombre: "%Sofia",
-                    apellido: "Aponte",
-                    email: "apontemurciamateo@gmail.com",
-                    telefono: "32000000",
-                    password: "12345678",
-                    role: "admin"
-                },
-            },
-        }
-     })
+    // =========================================================================
+    // Crear usuario (PUBLIC o ADMIN según configuración)
+    // =========================================================================
+
+    /**
+     * Registra un nuevo usuario en el sistema.
+     *
+     * Esta ruta está decorada como @Public(), permitiendo el registro sin autenticación.
+     * Puedes quitar el decorador si solo ADMIN debe crear usuarios.
+     */
     @Post()
     @Public()
+    @ApiOperation({
+        summary: 'Crear un nuevo usuario',
+        description:
+            'Registra un nuevo usuario. Puede configurarse para ser público o exclusivo para administradores.',
+    })
+    @ApiBody({
+        type: CreateUserDto,
+        examples: {
+            exitoso: {
+                summary: 'Registro exitoso',
+                value: {
+                    name: 'Laura Rincón',
+                    email: 'laura@example.com',
+                    password: 'secure123',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Usuario creado correctamente.',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Datos inválidos o error de validación.',
+    })
     async create(@Body() dto: CreateUserDto) {
         return this.userService.create(dto);
     }
-    
 
+    // =========================================================================
+    // Actualizar perfil propio del usuario autenticado
+    // =========================================================================
 
-
-    /** Actualizar datos del usuario autenticado */
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Datos del usuario actualizados',
-        type: UpdateUserDto,
-        content: {
-            'application/json': {
-                example: {
-                    message: 'Datos del usuario actualizados',
-                    data: {
-                        id: 1,
-                        nombre: "Sofia",
-                        apellido: "Aponte",
-                        email: "apontemurciamateo@gmail.com",
-                        telefono: "32000000",
-                        password: "12345678",
-                        role: "admin"
-                    },
-                },
-            }  
-        },
-      })
-      @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Datos de actualización incorrectos o campos vacíos',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    coreoDuplicado: "El nombre del usuario ya existe",
-                    value: {
-                        statusCode: 400,
-                        message: "Datos de actualización incorrectos o campos vacíos",
-                        error: "Bad request"
-                    },
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'nombre El nombre no es válido',
-                                'apellido La apellido no es válido',
-                                'email El correo electrónico no es válido',
-                                'telefono El telefono no es válido',
-                                'password La contraseña no es válida',
-                                'role El rol no es válido',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                },
-            }  
-        },  
-    })
-
+    /**
+     * Permite que un usuario autenticado actualice su propio perfil.
+     */
     @Patch('update')
+    @ApiOperation({
+        summary: 'Actualizar el perfil del usuario autenticado',
+    })
+    @ApiBody({ type: UpdateUserDto })
+    @ApiResponse({
+        status: 200,
+        description: 'Perfil actualizado correctamente.',
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Datos inválidos.',
+    })
     async updateProfile(@Request() req: any, @Body() dto: UpdateUserDto) {
         return this.userService.update(req.user.userId, dto);
     }
 
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Datos del usuario actualizados',
-        type: UpdateUserDto,
-        content: {
-            'application/json': {
-                example: {
-                    message: 'Datos del usuario actualizados',
-                    data: {
-                        id: 1,
-                        nombre: "Sofia",
-                        apellido: "Aponte",
-                        email: "apontemurciamateo@gmail.com",
-                        telefono: "32000000",
-                        password: "12345678",
-                        role: "admin"
-                    },
-                },
-            }  
-        },
-      })
-      @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Datos de actualización incorrectos o campos vacíos',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    coreoDuplicado: "El nombre del usuario ya existe",
-                    value: {
-                        statusCode: 400,
-                        message: "Datos de actualización incorrectos o campos vacíos",
-                        error: "Bad request"
-                    },
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'nombre El nombre no es válido',
-                                'apellido La apellido no es válido',
-                                'email El correo electrónico no es válido',
-                                'telefono El telefono no es válido',
-                                'password La contraseña no es válida',
-                                'role El rol no es válido',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                },
-            }  
-        },  
-    })
+    // =========================================================================
+    // Actualizar usuario por ID (ADMIN)
+    // =========================================================================
+
+    /**
+     * Actualiza cualquier usuario del sistema mediante su ID.
+     *
+     * Solo accesible para administradores.
+     */
     @Patch(':id')
     @Roles(UserRole.ADMIN)
-    async update(@Param('id') id: number, @Body() dto: UpdateUserDto) {
+    @ApiOperation({
+        summary: 'Actualizar un usuario por ID (solo ADMIN)',
+    })
+    @ApiParam({ name: 'id', example: 5 })
+    @ApiBody({ type: UpdateUserDto })
+    @ApiResponse({
+        status: 200,
+        description: 'Usuario actualizado correctamente.',
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Usuario no encontrado.',
+    })
+    async update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
         return this.userService.update(id, dto);
     }
 
-    @ApiResponse({
-        status: HttpStatus.OK,
-        description: 'Usuario eliminado',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    message: 'Usuario eliminado',
-                    data: {
-                        id: 1,
-                        nombre: "Sofia",
-                        apellido: "Aponte",
-                        email: "apontemurciamateo@gmail.com",
-                        telefono: "32000000",
-                        password: "12345678",
-                        role: "admin"
-                    },
-                },
-            }  
-        },
-      })
-      @ApiResponse({
-        status: HttpStatus.BAD_REQUEST,
-        description: 'Datos de eliminación incorrectos o campos vacíos',
-        type: Object,
-        content: {
-            'application/json': {
-                example: {
-                    coreoDuplicado: "El nombre del usuario ya existe",
-                    value: {
-                        statusCode: 400,
-                        message: "Datos de eliminación incorrectos o campos vacíos",
-                        error: "Bad request"
-                    },
-                    errorFormato: {
-                        summary: 'Formato de datos incorrectos',
-                        value: {
-                            statusCode: 400,
-                            message: [
-                                'nombre El nombre no es válido',
-                                'apellido La apellido no es válido',
-                                'email El correo electrónico no es válido',
-                                'telefono El telefono no es válido',
-                                'password La contraseña no es válida',
-                                'role El rol no es válido',
-                            ],
-                            error: 'Bad request',
-                        }
-                    }
-                },
-            }  
-        },  
-    })
+    // =========================================================================
+    // Eliminar usuario (ADMIN)
+    // =========================================================================
+
+    /**
+     * Elimina a un usuario del sistema.
+     *
+     * Solo accesible para administradores.
+     */
     @Delete(':id')
     @Roles(UserRole.ADMIN)
-    async delete(@Param('id') id: number) {
+    @ApiOperation({
+        summary: 'Eliminar un usuario por ID (solo ADMIN)',
+    })
+    @ApiParam({ name: 'id', example: 5 })
+    @ApiResponse({
+        status: 200,
+        description: 'Usuario eliminado correctamente.',
+        content: {
+            'application/json': {
+                example: {
+                    message: 'Usuario eliminado exitosamente.',
+                    deletedId: 5,
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 404,
+        description: 'Usuario no encontrado.',
+    })
+    async delete(@Param('id', ParseIntPipe) id: number) {
         return this.userService.delete(id);
     }
 }

@@ -1,57 +1,38 @@
 import { IsString, IsEmail, MinLength, IsOptional, IsEnum } from 'class-validator';
 import { UserRole } from '../entities/user.entity';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
+/**
+ * DTO para la creación de un nuevo usuario.
+ *
+ * Define las propiedades requeridas y opcionales para registrar un usuario
+ * en el sistema.
+ */
 export class CreateUserDto {
-
-    @ApiProperty({
-        name: 'nombre',
-        description: 'Nombre del usuario',
-        example: 'Sofia'
-    })
+    @ApiProperty({ description: 'Nombre del usuario', example: 'Juan' })
     @IsString()
     nombre: string;
 
-    @ApiProperty({
-        name: 'apellido',
-        description: 'Apellido del usuario',
-        example: 'Aponte'
-    })
+    @ApiProperty({ description: 'Apellido del usuario', example: 'Pérez' })
     @IsString()
     apellido: string;
 
-    @ApiProperty({
-        name: 'email',
-        description: 'Correo electrónico del usuario',
-        example: 'apontemurciamateo@gmail.com'
-    })
-    @IsEmail({}, {message: 'Debe ser un correo electrónico válido'})
+    @ApiProperty({ description: 'Correo electrónico del usuario', example: 'juan@example.com' })
+    @IsEmail()
     email: string;
 
-    @ApiProperty({
-        name: 'telefono',
-        description: 'Telefono del usuario',
-        example: '32000000'
-    })
-    @IsOptional({message: 'El telefono es opcional'})
+    @ApiPropertyOptional({ description: 'Teléfono del usuario', example: '+573001234567' })
+    @IsOptional()
     @IsString()
     telefono?: string;
 
-    @ApiProperty({
-        name: 'password',
-        description: 'Contraseña del usuario',
-        example: '12345678'
-    })
+    @ApiProperty({ description: 'Contraseña del usuario (mínimo 6 caracteres)', example: 'secure123' })
     @IsString()
-    @MinLength(6, {message: 'La contraseña debe tener al menos 6 caracteres'})
+    @MinLength(6)
     password: string;
 
-    @ApiProperty({
-        name: 'role',
-        description: 'Rol del usuario',
-        example: 'admin'
-    })
-    @IsOptional({message: 'El rol es opcional, para usuarios no administradores'})
-    @IsEnum(UserRole, {message: 'El rol debe ser un valor válido'})
+    @ApiPropertyOptional({ description: 'Rol del usuario', enum: UserRole, example: UserRole.CLIENT })
+    @IsOptional()
+    @IsEnum(UserRole)
     role?: UserRole;
 }

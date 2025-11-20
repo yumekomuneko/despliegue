@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjUsImVtYWlsIjoiYW5naWVjYWJhbDM1QGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjM1MTA1ODcsImV4cCI6MTc2MzU5Njk4N30.DajekX1FTv3pkP6smiUqe6xaWjQLbH9YzJH0bEtcaNo
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI3LCJlbWFpbCI6ImRhamFyeXRoaGVybmFuZGV6QGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2MzY1NDEyNywiZXhwIjoxNzYzNzQwNTI3fQ.mKxYAm0aWcOVhrjpAZnGD1KHBCjif7GAR8_4XeVCHZE
 GET {{baseUrl}}/carts/my
 Authorization: Bearer {{token}}
 
@@ -9,7 +9,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
-    "productId": 1,
+    "productId": 3,
     "quantity": 3
 }
 

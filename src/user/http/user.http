@@ -1,29 +1,27 @@
 @baseUrl = http://localhost:3000
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjMsImVtYWlsIjoiYW5naWVjYWJhbDM1QGdtYWlsLmNvbSIsInJvbGUiOiJDTElFTlQiLCJpYXQiOjE3NjM1MDIxNDYsImV4cCI6MTc2MzU4ODU0Nn0.FABTtTrddm7Ig5TmczUCJioXkNCRHv1YFpR1zyxVYe4
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjI3LCJlbWFpbCI6ImRhamFyeXRoaGVybmFuZGV6QGdtYWlsLmNvbSIsInJvbGUiOiJBRE1JTiIsImlhdCI6MTc2MzY1NDEyNywiZXhwIjoxNzYzNzQwNTI3fQ.mKxYAm0aWcOVhrjpAZnGD1KHBCjif7GAR8_4XeVCHZE
 
 ### Crear usuario
 POST {{baseUrl}}/auth/register
 Content-Type: application/json
 
 {
-    "nombre": "Mateo",
-    "apellido": "Aponte",
-    "email": "apontemurciamateo@gmail.com",
-    "telefono": "32000000",
-    "password": "12345678"
+    "nombre": "petroh",
+    "apellido": "alsalslas",
+    "email": "yumekomuneko@gmail.com",
+    "telefono": "3219342929",
+    "password": "456123",
+    "role": "cliente"
 }
 
 ### Recuperar Contraseña
-
-
-
 ### Login
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-    "email": "angiecabal35@gmail.com",
-    "password": "12345678"
+    "email": "yumekomuneko@gmail.com",
+    "password": "456123"
 }
 
 ### Listar todos los usuarios (solo admin)

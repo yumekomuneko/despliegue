@@ -1,10 +1,7 @@
-// chat.service.ts - VERSIÓN SIMPLIFICADA PARA PROBAR
 import { Injectable } from '@nestjs/common';
 import { ProductService } from '../product/product.service';
 import { OrderService } from '../order/order.service';
 import {PaymentMethodService} from '../pay-methods/pay-method.service';
-
-
 @Injectable()
 export class ChatService {
     constructor(
@@ -77,8 +74,12 @@ export class ChatService {
 
     //OBTENER INFORMACIÓN DE GARANTÍA //
     async getWarrantyInfo(productQuery: string) {
-        console.log(`🛡️ Consultando garantía para: ${productQuery}`);
-        
+
+        console.log(' ____________________________________________________');
+        console.log('/|                                                 |');
+        console.log(`||🛡️ Consultando garantía para: ${productQuery}    |`);
+        console.log('||_________________________________________________|');
+        console.log('/____________________________________________________/');
         const product = await this.productService.findByQuery(productQuery);
         
         if (!product) {
@@ -117,7 +118,10 @@ export class ChatService {
                     moneyBackGuarantee: true,
                     sslCertified: true
                 },
-                message: `💳 Tenemos ${methods.length} métodos de pago disponibles para ti:`,
+                message:`_________________________________________________________
+
+                💳 Tenemos ${methods.length} métodos de pago disponibles para ti:
+            _________________________________________________________`,
                 tips: [
                     '💡 Todas las transacciones están protegidas con encriptación SSL',
                     '🛡️ Protección contra fraudes incluida', 
@@ -159,13 +163,13 @@ export class ChatService {
                         processingTime: '1-2 días hábiles'
                     }
                 ],
-                securityInfo: { // 👈 Incluir securityInfo aquí también
+                securityInfo: {
                     encrypted: true,
                     fraudProtection: true, 
                     moneyBackGuarantee: true,
                     sslCertified: true
                 },
-                message: '💳 Métodos de pago disponibles:',
+                message:'💳 Métodos de pago disponibles:',
                 tips: [
                     'Todas las transacciones están protegidas',
                     'Garantía de devolución de 30 días'
@@ -173,7 +177,6 @@ export class ChatService {
             };
         }
     }
-
     //categoria favorita//
 
     private calculateFavoriteCategory(orders: any[]): string {
@@ -201,7 +204,8 @@ export class ChatService {
         // OBTENER HISTORIAL DE PEDIDOS DEL CLIENTE //
     async getCustomerOrderHistory(customerId: string) {
         try {
-            // Necesitas implementar este método en OrderService
+            
+            const userId = Number(customerId);
             const orders = await this.orderService.getUserOrderHistory(Number(customerId));
             
             return {
