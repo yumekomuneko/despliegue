@@ -1,37 +1,34 @@
-# -----------------------------------
-# 1. Build stage
-# -----------------------------------
-FROM node:18 as builder
+# -----------------------------
+# STAGE 1: Builder
+# -----------------------------
+FROM node:18-alpine AS builder
 
-# Crear directorio de app
 WORKDIR /app
 
-# Copiar package.json e instalar deps
+# Copiar package.json + lock y instalar deps de build
 COPY package*.json ./
+RUN npm install --legacy-peer-deps
 
-RUN npm install
-
-# Copiar todo el proyecto
+# Copiar el código y construir
 COPY . .
-
-# Construir NestJS
 RUN npm run build
 
-
-# -----------------------------------
-# 2. Production stage
-# -----------------------------------
-FROM node:18-alpine
+# -----------------------------
+# STAGE 2: Production
+# -----------------------------
+FROM node:18-alpine AS runner
 
 WORKDIR /app
 
-# Copiar solo lo necesario desde el builder
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+# Instalar solo dependencias de producción
+COPY package*.json ./
+RUN npm install --only=production --legacy-peer-deps
 
-# Puerto expuesto (Render detecta este puerto)
+# Copiar solo el build ya generado
+COPY --from=builder /app/dist ./dist
+
+# Exponer puerto (no obligatorio, pero informativo)
 EXPOSE 3000
 
-# Comando para iniciar NestJS
+# Comando de inicio
 CMD ["node", "dist/main.js"]

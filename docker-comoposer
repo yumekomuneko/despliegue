@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: ebond-db
+    restart: always
+    environment:
+      POSTGRES_USER: ebond_user
+      POSTGRES_PASSWORD: ebond_pass
+      POSTGRES_DB: ebond_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ebond-api
+    restart: always
+    depends_on:
+      - db
+    environment:
+      # ----------------------
+      # 🔐 VARIABLES DEL API
+      # ----------------------
+      PORT: 3000
+
+      # ⭐ Conexión a Postgres interna (desde Docker)
+      DATABASE_URL: postgres://ebond_user:ebond_pass@db:5432/ebond_db
+
+      # JWT
+      JWT_SECRET: super_secret_jwt
+
+      # SMTP (usa tus datos reales)
+      SMTP_HOST: smtp.tu-host.com
+      SMTP_PORT: 587
+      SMTP_USER: tu-correo
+      SMTP_PASS: tu-pass
+
+      # STRIPE (si aplica)
+      STRIPE_SECRET_KEY: sk_xxx
+      STRIPE_WEBHOOK_SECRET: whsec_xxx
+    ports:
+      - "3000:3000"
+    command: ["node", "dist/main.js"]
+
+volumes:
+  postgres_data:
