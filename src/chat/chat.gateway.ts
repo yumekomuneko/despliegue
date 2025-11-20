@@ -19,8 +19,7 @@ interface ChatContext {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.CORS_ORIGIN || true,
-    credentials: true,
+    origin: "*",
   },
   namespace: '/ecommerce-chat'
 })

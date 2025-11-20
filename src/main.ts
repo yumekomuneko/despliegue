@@ -58,7 +58,8 @@ async function bootstrap() {
 
     // Configuración de CORS
     app.enableCors({
-      origin: process.env.CORS_ORIGIN || true,
+      origin: "*", 
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
       credentials: true,
     });
 
@@ -89,7 +90,7 @@ async function bootstrap() {
     // -------------------------------------------------------------
 
     // ✅ SOLO UN app.listen() - Inicialización del servidor
-    const port = process.env.PORT ?? 3000;
+    const port = process.env.PORT || 3000;
     await app.listen(port);
 
     // Logs informativos

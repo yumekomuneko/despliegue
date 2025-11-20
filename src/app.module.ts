@@ -27,22 +27,12 @@ import { AppService } from './app.service';
         imports: [ConfigModule],
         useFactory: (configService: ConfigService) => ({
           type: 'postgres',
-          url: configService.get('DATABASE_URL'),
-          host: configService.get('DATABASE_HOST') || 'localhost',
-          port: configService.get('DATABASE_PORT') || 5432,
-          username: configService.get('DATABASE_USERNAME') || 'postgres',
-          password: configService.get('DATABASE_PASSWORD') || '1947',
-          database: configService.get('DATABASE_NAME') || 'taller5',
+          url: configService.get<string>('DATABASE_URL'),
           autoLoadEntities: true,
-          entities: [__dirname + '/**/*.entity{.ts,.js}'],
-          synchronize:false,
-          logging: configService.get('NODE_ENV') !== 'production',
-          ssl: configService.get('NODE_ENV') === 'production',
-          extra: configService.get('NODE_ENV') === 'production' ? {
-            ssl: {
-              rejectUnauthorized: false
-            }
-          } : undefined,
+          synchronize: false,
+          ssl: {
+            rejectUnauthorized: false
+          },
         }),
         inject: [ConfigService],
       }),

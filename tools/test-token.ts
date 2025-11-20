@@ -30,7 +30,7 @@ const socketOptions = {
 console.log('\n🔧 OPCIONES SOCKET:');
 console.log(JSON.stringify(socketOptions, null, 2));
 
-const socket = io('http://localhost:3000/ecomerce-chat', socketOptions);
+const socket = io('', socketOptions);
 
 socket.on('connect', () => {
     console.log('\n✅ CONECTADO AL SERVIDOR');

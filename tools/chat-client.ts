@@ -37,7 +37,7 @@ class InteractiveChatClient {
 
         
         const socketOptions: any = {
-            transports: ['websocket', 'Polling'],
+            transports: ['websocket'],
             forceNew: true,
             timeout:5000,
             path: '/socket.io'
@@ -59,7 +59,8 @@ class InteractiveChatClient {
 
         console.log('🔧 [CONSTRUCTOR DEBUG] Opciones de Socket.IO:', JSON.stringify(socketOptions, null, 2));
 
-        this.socket = io('http://localhost:3000/ecommerce-chat', socketOptions);
+        this.socket = io('https://TU_SERVICIO.onrender.com/ecommerce-chat', socketOptions);
+
 
         this.rl = readline.createInterface({
             input: process.stdin,

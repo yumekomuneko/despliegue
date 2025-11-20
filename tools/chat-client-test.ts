@@ -3,7 +3,7 @@ import * as readline from 'readline';
 
 console.log('🧪 Cliente de prueba - Diagnosticando conexión...');
 
-const socket = io('http://localhost:3000/ecomerce-chat', {
+const socket = io('http://localhost:3000/ecommerce-chat', {
     transports: ['websocket'],
     timeout: 5000
 });
