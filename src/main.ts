@@ -1,7 +1,6 @@
 /**
  * Punto de entrada principal de la aplicación NestJS.
- * Aquí se inicializa el servidor, se configuran los pipes globales,
- * parsers personalizados y la documentación Swagger.
+ * Inicializa el servidor, pipes globales, parsers y Swagger.
  */
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -11,43 +10,25 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   try {
-    /**
-     * Creación de la aplicación NestJS.
-     * - `bodyParser: false` desactiva el parser interno de Nest
-     *    para permitir capturar el rawBody manualmente.
-     */
     const app = await NestFactory.create(AppModule, {
       bodyParser: false,
     });
 
-    /**
-     * Configuración manual de body-parser para capturar rawBody,
-     * especialmente requerido para validación de webhooks (ej. Stripe).
-     * - Solo aplica a la ruta `/payments/webhook`
-     */
+    // Capturar rawBody para Stripe Webhooks
     app.use(
       bodyParser.json({
         verify: (req: any, res, buf) => {
           if (req.originalUrl.startsWith('/payments/webhook')) {
-            req.rawBody = buf; // Guarda el raw body para la verificación de la firma
+            req.rawBody = buf;
           }
         },
       }),
     );
 
-    /**
-     * Parser urlencoded para soportar formularios
-     * en el resto de las rutas del backend.
-     */
+    // Urlencoded para otras rutas
     app.use(bodyParser.urlencoded({ extended: true }));
 
-    /**
-     * Pipes globales de validación de DTOs.
-     *
-     * - `whitelist`: elimina propiedades no permitidas.
-     * - `forbidNonWhitelisted`: lanza error ante campos desconocidos.
-     * - `transform`: convierte automáticamente los tipos de datos.
-     */
+    // Validación global
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
@@ -56,22 +37,14 @@ async function bootstrap() {
       }),
     );
 
-    // Configuración de CORS
+    // CORS
     app.enableCors({
-      origin: "*", 
-      methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+      origin: '*',
+      methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
       credentials: true,
     });
 
-    // -------------------------------------------------------------
-    // 🚀 CONFIGURACIÓN SWAGGER — Documentación Interactiva
-    // -------------------------------------------------------------
-    /**
-     * Configuración base del documento Swagger.
-     *
-     * - `addBearerAuth()`: habilita el botón "Authorize" para JWT.
-     * - `setDescription()`: descripción visible en el panel Swagger.
-     */
+    // Swagger
     const config = new DocumentBuilder()
       .setTitle('E-BOND API')
       .setDescription('Documentación de la API')
@@ -79,25 +52,17 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
 
-    // Generar documento Swagger a partir de los decoradores
     const document = SwaggerModule.createDocument(app, config);
-
-    /**
-     * Ruta donde estará disponible el panel Swagger.
-     * Ejemplo: http://localhost:3000/api
-     */
     SwaggerModule.setup('api', app, document);
-    // -------------------------------------------------------------
 
-    // ✅ SOLO UN app.listen() - Inicialización del servidor
+    // Listen correcto para Render
     const port = process.env.PORT || 3000;
     await app.listen(port, '0.0.0.0');
 
-    console.log(`🚀 Servidor corriendo en: http://0.0.0.0:${port}`);
-    console.log(`📘 Swagger disponible en: http://0.0.0.0:${port}/api`);
-    console.log(`💬 Chat disponible en: http://0.0.0.0:${port}/ecomerce-chat`);
-
-
+    console.log(`🚀 Servidor corriendo en el puerto: ${port}`);
+    console.log(`📘 Swagger disponible en /api`);
+    console.log(`💬 Chat WebSocket disponible en /ecomerce-chat`);
+    
   } catch (error) {
     console.error('Error al iniciar aplicación:', error);
     process.exit(1);
